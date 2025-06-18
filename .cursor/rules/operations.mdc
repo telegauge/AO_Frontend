@@ -1,0 +1,6 @@
+---
+description: 
+globs: *vue
+alwaysApply: false
+---
+Data is currently loaded and saved via Pinia store, and it's saved in real time.  Therefore, no "Save" action is needed as data is constantly updated.  Also, the template language is Pug, the style language is SCSS.  

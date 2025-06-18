@@ -1,12 +1,12 @@
 {
-  "editor.bracketPairColorization.enabled": true,
-  "editor.guides.bracketPairs": true,
-  "editor.formatOnSave": true,
-  "vue.enableTakeOverMode": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.codeActionsOnSave": ["source.fixAll.eslint"],
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"],
-  "workbench.colorCustomizations": {
+	"editor.bracketPairColorization.enabled": true,
+	"editor.guides.bracketPairs": true,
+	"editor.formatOnSave": true,
+	"vue.enableTakeOverMode": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.codeActionsOnSave": ["source.fixAll.eslint"],
+	"eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"],
+	"workbench.colorCustomizations": {
 		"activityBar.activeBackground": "#299ac0",
 		"activityBar.background": "#299ac0",
 		"activityBar.foreground": "#e7e7e7",
@@ -25,5 +25,10 @@
 		"titleBar.inactiveBackground": "#20789699",
 		"titleBar.inactiveForeground": "#e7e7e799"
 	},
-  "peacock.color": "#207896"
+	"peacock.color": "#207896",
+	"workbench.editor.customLabels.patterns": {
+		"**/components/**/Edit.vue": "[Edit] ${dirname}",
+		"**/components/**/View.vue": "[View] ${dirname}",
+		"**/stores/*.js": "[Store] ${filename}"
+	}
 }

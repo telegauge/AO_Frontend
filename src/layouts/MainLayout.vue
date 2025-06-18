@@ -7,52 +7,33 @@ q-layout(view="lHh Lpr lFf")
       div Quasar v{{ $q.version }}
   q-drawer(v-model="leftDrawerOpen" show-if-above bordered)
     q-list
-      q-item-label(header) Essential Links
-      EssentialLink(v-for="link in linksList" :key="link.title" v-bind="link")
+      router-link(to="/instruments")
+        q-item-label(header ) Instruments
+      q-item(v-for="instrument in instruments" :key="instrument.id" clickable :to="{ name: 'instrument', params: { id: instrument.id } }")
+        q-item-section(avatar)
+          q-icon(:name="instrument.type")
+        q-item-section
+          q-item-label {{ instrument.name }}
+          q-item-label(caption) {{ instrument.type }} - {{ instrument.ip }}
   q-page-container
     router-view
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import EssentialLink from 'components/EssentialLink.vue'
-
-const linksList = [
-	{
-		title: 'Discord Chat Channel',
-		caption: 'chat.quasar.dev',
-		icon: 'chat',
-		link: 'https://chat.quasar.dev',
-	},
-	{
-		title: 'Forum',
-		caption: 'forum.quasar.dev',
-		icon: 'record_voice_over',
-		link: 'https://forum.quasar.dev',
-	},
-	{
-		title: 'Twitter',
-		caption: '@quasarframework',
-		icon: 'rss_feed',
-		link: 'https://twitter.quasar.dev',
-	},
-	{
-		title: 'Facebook',
-		caption: '@QuasarFramework',
-		icon: 'public',
-		link: 'https://facebook.quasar.dev',
-	},
-	{
-		title: 'Quasar Awesome',
-		caption: 'Community Quasar projects',
-		icon: 'favorite',
-		link: 'https://awesome.quasar.dev',
-	},
-]
+import { useRouter } from 'vue-router'
+import { useInstrumentsStore } from 'stores/instruments'
 
 const leftDrawerOpen = ref(false)
+const router = useRouter()
+const store = useInstrumentsStore()
+const instruments = store.instruments
 
 function toggleLeftDrawer() {
 	leftDrawerOpen.value = !leftDrawerOpen.value
+}
+
+function goToInstrument(id) {
+	router.push({ name: 'instrument', params: { id } })
 }
 </script>

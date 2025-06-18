@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+This project is intended to communicate with physical musical instruments.  It will accept user input and send that via some API to the actual insturments.
