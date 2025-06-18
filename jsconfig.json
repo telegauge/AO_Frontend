@@ -1,3 +1,7 @@
 {
-  "extends": "./.quasar/tsconfig.json"
+	"include": ["src/**/*.js", "src/**/*.vue"],
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": false
+	}
 }
