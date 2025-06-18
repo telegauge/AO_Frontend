@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 
 export const Types = [
-	{ label: 'Guitar', value: 'guitar', icon: 'guitar' },
-	{ label: 'Piano', value: 'piano', icon: 'piano' },
-	{ label: 'Drums', value: 'drums', icon: 'drums' },
-	{ label: 'Bow', value: 'bow', icon: 'bow' },
-	{ label: 'Wind', value: 'wind', icon: 'wind' },
+	{ label: 'Guitar', value: 'guitar', icon: 'guitar', cmd: ['pluck', 'strum', 'fret'] },
+	{ label: 'Piano', value: 'piano', icon: 'piano', cmd: [] },
+	{ label: 'Drums', value: 'drums', icon: 'drums', cmd: [] },
+	{ label: 'Bow', value: 'bow', icon: 'bow', cmd: [] },
+	{ label: 'Wind', value: 'wind', icon: 'wind', cmd: [] },
 ]
 
 export const useInstrumentsStore = defineStore('instruments', {

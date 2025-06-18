@@ -11,6 +11,21 @@ q-page(padding)
       strong IP Address:
       |  {{ instrument.ip }}
     pre {{ instrument.config }}
+
+    q-btn-group.q-ma-lg
+      q-btn(v-for="cmd in Types.find(t => t.value === instrument.type).cmd" :key="cmd" :label="cmd" @click="sendCmd(cmd)")
+
+  .text-bold Puck-o-regular (click)
+  .row.q-ma-lg
+    .col-shrink(v-for="i in 4" :key="i")
+      q-btn(:label="i" @click="sendCmd('pluck',i-1)").mouseoverflash
+
+  .text-bold Puck-o-matic (strum)
+  .row.q-ma-lg
+    .col-shrink(v-for="i in 4" :key="i")
+      q-btn(:label="i" @mouseleave="sendCmd('pluck',i-1)").mouseoverflash
+
+
     q-page-sticky(position="bottom-left" :offset="[18, 18]")
       q-btn(
         icon="edit"
@@ -22,7 +37,7 @@ q-page(padding)
 
 <script setup>
 import { computed } from 'vue'
-import { useInstrumentsStore } from 'stores/instruments'
+import { useInstrumentsStore, Types } from 'stores/instruments'
 
 const store = useInstrumentsStore()
 
@@ -33,13 +48,30 @@ const props = defineProps({
 	},
 })
 const instrument = computed(() => store.getById(props.id))
-</script>
 
+const sendCmd = (cmd, arg) => {
+	if (!instrument.value) return
+	const url = `http://${instrument.value.ip}/api/${cmd}?arg=${arg}`
+	fetch(url, {
+		method: 'POST',
+	})
+		.then((response) => {
+			if (!response.ok) throw new Error('Network response was not ok')
+			return response.text()
+		})
+		.then((data) => {
+			console.log('Command sent:', cmd, 'Response:', data)
+		})
+		.catch((error) => {
+			console.error('Error sending command:', error)
+		})
+}
+</script>
 <style scoped lang="scss">
-.q-fab-bottom-right {
-	position: fixed;
-	right: 24px;
-	bottom: 24px;
-	z-index: 100;
+.mouseoverflash {
+	transition: background-color 0.3s;
+	&:hover {
+		background-color: #ff0000;
+	}
 }
 </style>
