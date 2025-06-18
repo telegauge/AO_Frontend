@@ -29,6 +29,8 @@
 	"workbench.editor.customLabels.patterns": {
 		"**/components/**/Edit.vue": "[Edit] ${dirname}",
 		"**/components/**/View.vue": "[View] ${dirname}",
+		"**/pages/**/Edit.vue": "[PAGE]${dirname} (edit)",
+		"**/pages/**/View.vue": "[PAGE]${dirname} (view)",
 		"**/stores/*.js": "[Store] ${filename}"
 	}
 }

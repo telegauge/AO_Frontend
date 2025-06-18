@@ -6,15 +6,27 @@ q-page.q-pa-md
         q-item-label {{ instrument.name }}
         q-item-label(caption) {{ instrument.type }} - {{ instrument.ip }}
   q-separator.q-mt-lg
-  .text-h5 Add Instrument
-  .row.q-gutter-md
-    q-btn.col(v-for="t of Types" :key="t.value" :label="t.label" :icon="t.icon" color="primary" class="q-mt-md" @click="AddInstrument(t.value)")
+  q-page-sticky(position="bottom" :offset="[18, 18]")
+    .text-h6.text-center Add to the Band
+    .row.q-gutter-md
+      q-btn.col(
+        v-for="t of Types"
+        stack
+        :disabled="t.disabled"
+        :key="t.value"
+        :label="t.label"
+        :icon="t.icon"
+        color="primary"
+        class="q-mt-md"
+        @click="AddInstrument(t.value)"
+      )
+        q-tooltip(v-if="t.examples") {{ t.examples.join(', ') }}...
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useInstrumentsStore, Types } from 'stores/instruments'
+import { useInstrumentsStore, Defs } from 'stores/instruments'
 
 const router = useRouter()
 const store = useInstrumentsStore()

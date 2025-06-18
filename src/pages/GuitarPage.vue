@@ -12,8 +12,8 @@
 import { useRoute, useRouter } from 'vue-router'
 import { useInstrumentsStore } from 'stores/instruments'
 import { computed, ref } from 'vue'
-import InstrumentView from 'components/Instrument/View.vue'
-import InstrumentEdit from 'components/Instrument/Edit.vue'
+import InstrumentView from 'pages/Instrument/View.vue'
+import InstrumentEdit from 'pages/Instrument/Edit.vue'
 
 const route = useRoute()
 const router = useRouter()

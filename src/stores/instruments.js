@@ -1,11 +1,45 @@
 import { defineStore } from 'pinia'
 
-export const Types = [
-	{ label: 'Guitar', value: 'guitar', icon: 'guitar', cmd: ['pluck', 'strum', 'fret'] },
-	{ label: 'Piano', value: 'piano', icon: 'piano', cmd: [] },
-	{ label: 'Drums', value: 'drums', icon: 'drums', cmd: [] },
-	{ label: 'Bow', value: 'bow', icon: 'bow', cmd: [] },
-	{ label: 'Wind', value: 'wind', icon: 'wind', cmd: [] },
+export const Defs = [
+	{
+		label: 'Guitar',
+		examples: ['Guitar', 'Banjo', 'Ukulele'],
+		value: 'guitar',
+		icon: 'guitar',
+		cmd: ['pluck', 'strum', 'fret'],
+	},
+	{
+		label: 'Piano',
+		examples: ['Piano', 'Organ', 'Keyboard'],
+		disabled: true,
+		value: 'piano',
+		icon: 'piano',
+		cmd: [],
+	},
+	{
+		label: 'Drums',
+		examples: ['Drums', 'Percussion'],
+		disabled: true,
+		value: 'drums',
+		icon: 'drums',
+		cmd: [],
+	},
+	{
+		label: 'Bowed',
+		examples: ['Violin', 'Cello', 'Viola'],
+		disabled: true,
+		value: 'bow',
+		icon: 'bowed',
+		cmd: [],
+	},
+	{
+		label: 'Wind',
+		examples: ['Flute', 'Saxophone', 'Trumpet'],
+		disabled: true,
+		value: 'wind',
+		icon: 'wind',
+		cmd: [],
+	},
 ]
 
 export const useInstrumentsStore = defineStore('instruments', {
@@ -17,12 +51,18 @@ export const useInstrumentsStore = defineStore('instruments', {
 				type: 'guitar',
 				ip: '192.168.7.127',
 				config: {},
+        state: {
+          neck: { 0: "0010", 1: "0000" }
+        }
 			},
 		],
 	}),
 	getters: {
 		getById: (state) => (id) => {
 			return state.instruments.find((inst) => inst.id == id)
+		},
+		getDefById: (state) => (id) => {
+			return Defs.find((type) => type.value === state.instruments.find((inst) => inst.id == id).type)
 		},
 	},
 	actions: {
