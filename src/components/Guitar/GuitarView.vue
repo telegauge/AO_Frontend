@@ -23,12 +23,12 @@
                 tr.bg-grey-2
                   th.text-right Strum
                   td(v-for="(name,s) in strings" :key="s")
-                    q-btn(label=">" color="primary" round @mouseleave="sendCmd('POST','pluck',{string:s})").mouseoverflash
+                    q-btn(label=">" color="primary" round @mouseenter="FlashEl" @mouseleave="sendCmd('POST','pluck',{string:s})").mouseoverflash
 
-                tr.bg-grey-2
-                  th.text-right Interval
-                  td(:colspan="strings")
-                    q-slider(v-model="interval"  type="number" :min="0" :step="100" :max="5000" label="Interval")
+                //- tr.bg-grey-2
+                //-   th.text-right Interval
+                //-   td(:colspan="strings")
+                //-     q-slider(v-model="interval"  type="number" :min="0" :step="100" :max="5000" label="Interval")
 
       .col-12.col-lg-8
         .row.justify-center.q-my-lg
@@ -240,10 +240,9 @@ const connectWs = () => {
     console.log('[WS] Message:', event.data)
     try {
       const response = JSON.parse(event.data)
-      const requestId = response.requestId
-      if (pendingRequests.has(requestId)) {
-        const { resolve } = pendingRequests.get(requestId)
-        pendingRequests.delete(requestId)
+      if (response.cmd && pendingRequests.has(response.cmd)) {
+        const resolve = pendingRequests.get(response.cmd)
+        pendingRequests.delete(response.cmd)
         resolve(response)
       }
     } catch (e) {
@@ -258,32 +257,15 @@ const sendWsCmd = (method, cmd, args) => {
     return sendRestCmd(method, cmd, args)
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const message = {
       cmd,
       ...args
     }
 
     console.log('[WS] Sending:', message)
+    pendingRequests.set(cmd, resolve)
     ws.value.send(JSON.stringify(message))
-
-    const messageHandler = (event) => {
-      console.log('[WS] Response:', event.data)
-      ws.value.removeEventListener('message', messageHandler)
-      try {
-        resolve(JSON.parse(event.data))
-      } catch (e) {
-        resolve(event.data)
-      }
-    }
-
-    ws.value.addEventListener('message', messageHandler)
-
-    // setTimeout(() => {
-    //   ws.value.removeEventListener('message', messageHandler)
-    //   console.log('[WS] Timeout ')
-    //   // sendRestCmd(method, cmd, args).then(resolve).catch(reject)
-    // }, 5000)
   })
 }
 
@@ -322,12 +304,16 @@ const chords = {
 }
 
 const showPrefs = ref(false)
+
+const FlashEl = (e) => {
+  e.target.style.opacity = '0.5'
+  setTimeout(() => {
+    e.target.style.opacity = '1'
+  }, 1000)
+}
 </script>
 <style scoped lang="scss">
 .mouseoverflash {
-	transition: background-color 0.3s;
-	&:hover {
-		background-color: #ff0000;
-	}
+	transition: opactiy 0.3s;
 }
 </style>
