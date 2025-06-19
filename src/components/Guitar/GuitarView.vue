@@ -9,7 +9,7 @@
               thead
                 tr
                   th
-                  th(v-for="(name,s) in strings" :key="s") {{ name }}
+                  th(v-for="(s) in strings" :key="s") {{ s }}
               tbody(v-if="instrument.state.neck")
                 tr(v-for="f in frets" :key="f")
                   th.text-right Fret {{ f }}
@@ -27,7 +27,7 @@
 
                 tr.bg-grey-2
                   th.text-right Interval
-                  td(:colspan="strings.length")
+                  td(:colspan="strings")
                     q-slider(v-model="interval"  type="number" :min="0" :step="100" :max="5000" label="Interval")
 
       .col-12.col-lg-8
@@ -48,11 +48,24 @@
 
 
     q-page-sticky(position="bottom-right" :offset="[18, 18]")
-      div(style="width: 100px;")
-        q-linear-progress(:value="batt_percent/100" size="xl" color="primary" class="q-mt-md" width="100px")
-          .absolute-full.flex.flex-center
-            q-badge.text-white.text-bold {{ batt_percent }}%
-          q-tooltip Battery: {{ batt_percent }}%
+      .row
+        q-chip.col-shrink(v-if="online" color="positive" text-color="white" icon="mdi-wifi") Online
+        q-chip.col-shrink(v-else color="negative" text-color="white" icon="mdi-wifi-off") Offline
+        q-chip.col-shrink(icon="mdi-battery" text-color="white" :color="batt_percent > 20 ? 'positive' : batt_percent > 10 ? 'warning' : 'negative'") {{ batt_percent }}%
+
+
+    q-page-sticky(position="bottom-left" :offset="[18, 18]")
+      q-btn(icon="mdi-cog" flat color="primary" round @click="showPrefs = true")
+
+    q-dialog(v-model="showPrefs")
+      q-card(style="min-width: 350px")
+        q-card-section
+          .text-h6 Preferences
+        q-card-section
+          .text-subtitle2 Strum Delay
+          q-slider(v-model="strum_delay" type="number" :min="0" :max="5000" label="Delay")
+        q-card-actions(align="right")
+          q-btn(flat label="Close" color="primary" v-close-popup)
 
 
 
@@ -87,16 +100,27 @@ const props = defineProps({
 })
 const instrument = computed(() => props.instrument)
 
-const strings = ref(['G', 'C', 'A', 'E'])
+const online = ref(false)
+const strings = ref(4)
 const frets = ref(6)
+const strum_delay = ref(1000)
 
 const strum_it = ref(false)
 
 const batt_percent = ref(0)
 const timer = ref(null)
 onMounted(async () => {
-  timer.value = setInterval(async () => {batt_percent.value = await sendCmd("GET", "battery")}, 60000)
+  timer.value = setInterval(async () => {batt_percent.value = await sendCmd("GET", "battery")}, 6000)
   batt_percent.value = await sendCmd("GET", "battery")
+})
+
+onMounted(async () => {
+  const info = await sendCmd("GET", "info")
+  strings.value = info.strings
+  frets.value = info.fretters + 4
+  if (info.instrument) {
+      online.value = true
+  }
 })
 onUnmounted(() => clearInterval(timer.value))
 
@@ -106,7 +130,7 @@ watch(interval, (newVal) => {
     clearInterval(intervalTimer)
   if (newVal > 0) {
     intervalTimer = setInterval(() => {
-      sendCmd("POST", "strum")
+      sendCmd("POST", "strum", { delay: strum_delay.value })
     }, newVal)
   }
 })
@@ -131,7 +155,7 @@ const setChord = (chord) => {
   for (var f = 0; f < frets.value; f++) {
     var pressed = chords[chord][f]
     out += pressed
-    for (var s = 0; s < strings.value.length; s++) {
+    for (var s = 0; s < strings.value; s++) {
       console.log(pressed, f, s, out[s])
       state.value[f] = state.value[f].substring(0, s) + pressed[s] + state.value[f].substring(s + 1)
     }
@@ -139,7 +163,7 @@ const setChord = (chord) => {
   console.log(out)
   sendCmd("POST", "chord", { pressed: out, chord: chord })
   if (strum_it.value) {
-    sendCmd("POST", "strum")
+    sendCmd("POST", "strum", { delay: strum_delay.value })
   }
 }
 
@@ -149,15 +173,18 @@ const sendCmd = (method, cmd, args) => {
     ? Object.entries(args).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
     : args
 
-  const url = `http://${instrument.value.ip}/api/${cmd}?${arg}`
+  let url = `http://${instrument.value.ip}/api/${cmd}`
+  if (args) {
+    url += `?${arg}`
+  }
   return fetch(url, { method })
     .then((response) => {
       if (!response.ok) throw new Error('Network response was not ok')
       return response.text()
     })
     .then((data) => {
-      if (method === 'GET') return data
       console.log('Command sent:', cmd, 'Response:', data)
+      if (method === 'GET') return JSON.parse(data)
     })
     .catch((error) => {
       console.error('Error sending command:', error)
@@ -187,6 +214,8 @@ const chords = {
   "G7": ["0010", "0101", "0000", "0000", "0000", "0000"],
 
 }
+
+const showPrefs = ref(false)
 </script>
 <style scoped lang="scss">
 .mouseoverflash {
