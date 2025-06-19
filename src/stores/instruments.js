@@ -6,7 +6,7 @@ export const Defs = [
 		examples: ['Guitar', 'Banjo', 'Ukulele'],
 		value: 'guitar',
 		icon: 'guitar',
-		cmd: ['pluck', 'strum', 'fret'],
+		cmd: ['pluck', 'strum', 'fret', 'chord'],
 	},
 	{
 		label: 'Piano',

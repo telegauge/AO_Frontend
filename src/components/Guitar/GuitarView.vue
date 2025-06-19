@@ -1,37 +1,50 @@
 <template lang="pug">
   #GUITAR
 
-    .row.justify-center.q-my-lg.q-col-gutter-md
-      .col-1(v-for="chord in Object.keys(chords)" :key="chord")
-        q-btn.fit(:label="chord" color="primary" @click="setChord(chord)")
-
     .row.justify-center.q-my-lg
-      .col-shrink
-        q-markup-table
-          thead
-            tr
-              th
-              th(v-for="(name,s) in strings" :key="s")
-                .text-h6 {{ name }}
-          tbody(v-if="instrument.state.neck")
-            tr(v-for="f in frets" :key="f")
-              th.text-right Fret {{ f }}
-              td(v-for="(name,s) in strings" :key="s")
-                q-btn.fit(color="primary" :label="getFretAt(f-1,s) ? 'x' : ' '" @click="toggleFret(f-1,s)")
+      .col-12.col-lg-4
+        .row.justify-center.q-my-lg
+          .col-shrink
+            q-markup-table
+              thead
+                tr
+                  th
+                  th(v-for="(name,s) in strings" :key="s") {{ name }}
+              tbody(v-if="instrument.state.neck")
+                tr(v-for="f in frets" :key="f")
+                  th.text-right Fret {{ f }}
+                  td(v-for="(name,s) in strings" :key="s")
+                    q-btn.fit(color="primary" :label="getFretAt(f-1,s) ? '⏺' : ''" @click="toggleFret(f-1,s)")
 
-            tr.bg-grey-2
-              th.text-right Pluck
-              td(v-for="(name,s) in strings" :key="s")
-                q-btn(label="V" round color="primary" @click="sendCmd('POST','pluck',{string:s})").mouseoverflash
-            tr.bg-grey-2
-              th.text-right Strum
-              td(v-for="(name,s) in strings" :key="s")
-                q-btn(label=">" color="primary" round @mouseleave="sendCmd('POST','pluck',{string:s})").mouseoverflash
+                tr.bg-grey-2
+                  th.text-right Pluck
+                  td(v-for="(name,s) in strings" :key="s")
+                    q-btn(label="V" round color="primary" @click="sendCmd('POST','pluck',{string:s})").mouseoverflash
+                tr.bg-grey-2
+                  th.text-right Strum
+                  td(v-for="(name,s) in strings" :key="s")
+                    q-btn(label=">" color="primary" round @mouseleave="sendCmd('POST','pluck',{string:s})").mouseoverflash
 
-            tr.bg-grey-2
-              th.text-right Interval
-              td(:colspan="strings.length")
-                q-slider(v-model="interval"  type="number" :min="0" :step="100" :max="5000" label="Interval")
+                tr.bg-grey-2
+                  th.text-right Interval
+                  td(:colspan="strings.length")
+                    q-slider(v-model="interval"  type="number" :min="0" :step="100" :max="5000" label="Interval")
+
+      .col-12.col-lg-8
+        .row.justify-center.q-my-lg
+          .col-shrink
+            q-markup-table
+              thead
+                tr
+                  th
+                    q-checkbox(v-model="strum_it")
+                      q-tooltip Strum when setting chords
+                  th(v-for="note in notes" :key="note") {{ note }}
+              tbody
+                tr(v-for="variation in variations" :key="variation")
+                  th {{ variation.label }}
+                  td(v-for="note in notes" :key="note")
+                    q-btn.fit(:label="note+variation.value" :disabled="!chords[note+variation.value]" no-caps color="primary" @click="setChord(note + variation.value)")
 
 
     q-page-sticky(position="bottom-right" :offset="[18, 18]")
@@ -40,6 +53,7 @@
           .absolute-full.flex.flex-center
             q-badge.text-white.text-bold {{ batt_percent }}%
           q-tooltip Battery: {{ batt_percent }}%
+
 
 
     //- q-btn-group.q-ma-lg
@@ -75,6 +89,9 @@ const instrument = computed(() => props.instrument)
 
 const strings = ref(['G', 'C', 'A', 'E'])
 const frets = ref(6)
+
+const strum_it = ref(false)
+
 const batt_percent = ref(0)
 const timer = ref(null)
 onMounted(async () => {
@@ -110,12 +127,19 @@ const toggleFret = (fret, string) => {
 }
 
 const setChord = (chord) => {
-  for (var f = 0; f < 2; f++) {
+  var out = ""
+  for (var f = 0; f < frets.value; f++) {
     var pressed = chords[chord][f]
-    sendCmd("POST", "fret", { fret: f, pressed: pressed })
+    out += pressed
     for (var s = 0; s < strings.value.length; s++) {
+      console.log(pressed, f, s, out[s])
       state.value[f] = state.value[f].substring(0, s) + pressed[s] + state.value[f].substring(s + 1)
     }
+  }
+  console.log(out)
+  sendCmd("POST", "chord", { pressed: out, chord: chord })
+  if (strum_it.value) {
+    sendCmd("POST", "strum")
   }
 }
 
@@ -140,12 +164,28 @@ const sendCmd = (method, cmd, args) => {
     })
 }
 
+const notes = ["C", "D", "E", "F", "G", "A", "B"]
+const variations = [{ label: "Major", value: "" }, { label: "Minor", value: "m" }, { label: "7", value: "7" }, { label: "Flat", value: "b" }, { label: "Major 7", value: "maj7" }, { label: "9", value: "9" }]
 
 const chords = {
-  "A": ["0100", "1000", "0000", "000", "0000", "0000"],
+  "A": ["0100", "1000", "0000", "00000", "0000", "0000"],
+  "Am": ["0000", "1000", "0000", "0000", "0000", "0000"],
+  "A7": ["0100", "0000", "0000", "0000", "0000", "0000"],
   "B": ["0000", "0011", "0100", "1000", "0000", "0000"],
   "C": ["0000", "0000", "0001", "0000", "0000", "0000"],
-  "D": ["0000", "1110", "0000", "0000", "0000", "0000"],
+  "Cm": ["0000", "0000", "0111", "0000", "0000", "0000"],
+  "C7": ["0001", "0000", "0000", "0000", "0000", "0000"],
+  "C9": ["0001", "0100", "0000", "0000", "0000", "0000"],
+  "Cmaj7": ["0000", "0001", "0000", "0000", "0000", "0000"],
+  "D": ["0000", "1110", "0000", "0001", "0000", "0000"],
+  "D7": ["0000", "1110", "0001", "0000", "0000", "0000"],
+  "Db": ["1110", "0000", "0000", "0001", "0000", "0000"],
+  "Dm": ["0010", "1100", "0000", "0000", "0000", "0000"],
+  "E": ["0000", "0001", "0000", "1110", "0000", "0000"],
+  "F": ["0010", "1000", "0000", "0000", "0000", "0000"],
+  "G": ["0000", "0101", "0010", "0000", "0000", "0000"],
+  "G7": ["0010", "0101", "0000", "0000", "0000", "0000"],
+
 }
 </script>
 <style scoped lang="scss">
