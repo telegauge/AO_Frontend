@@ -1,40 +1,55 @@
-# Front End for the Actuator Orchestra (aofrontend)
+# Actuator Orchestra Frontend
 
-A Quasar Project
+The Actuator Orchestra Frontend provides a web-based interface for controlling and orchestrating physical musical instruments. It needs to talk to an AO-enabled instrument.
 
-## Install the dependencies
-```bash
-yarn
-# or
-npm install
-```
+See the [Actuator Orchestra](https://github.com/telegauge/ActuatorOrchestra) repository for more information.
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
-```bash
-quasar dev
-```
+## Tech Stack
+- Vue.js for reactive UI components
+- Quasar Framework for UI/UX
+- SCSS for styling
+- PUG for template syntax
+- NPM for package management
 
+## Setup Requirements
+- Node.js (Latest LTS recommended)
+- NPM
+- Git
 
-### Lint the files
-```bash
-yarn lint
-# or
-npm run lint
-```
+## Installation
+- Clone the repository: `git clone https://github.com/telegauge/AO_Frontend.git`
+- Navigate to project: `cd AO_Frontend`
+- Install dependencies: `npm install`
+- Start development server: `npm run dev`
 
+## Project Structure
+- `/src/components/` - Reusable Vue components
+  - `/Guitar/` - Guitar-specific components and views
+- `/src/pages/` - Application routes and views
+  - `/Instrument/` - Instrument management pages
+- `/src/stores/` - State management
+- `/src/layouts/` - Page layouts and templates
+- `/src/css/` - Global styles and Quasar variables
+- `/src/router/` - Route configurations
 
-### Format the files
-```bash
-yarn format
-# or
-npm run format
-```
+## Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run lint` - Run code linting
 
+## Features
+- Real-time instrument control
+- Instrument management (Add/Edit/View)
+- Guitar-specific interface
+- Responsive design for various screen sizes
 
-### Build the app for production
-```bash
-quasar build
-```
+## Contributing
+- Fork the repository
+- Create feature branch
+- Submit pull request
+- Ensure code follows project standards
+- Include clear description of changes
 
-### Customize the configuration
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+## License
+[Add appropriate license information]
+
