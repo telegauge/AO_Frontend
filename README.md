@@ -12,6 +12,7 @@ See the [Actuator Orchestra](https://github.com/telegauge/ActuatorOrchestra) rep
 - NPM for package management
 
 ## Setup Requirements
+- AO-enabled instrument
 - Node.js (Latest LTS recommended)
 - NPM
 - Git

@@ -49,9 +49,9 @@
 
     q-page-sticky(position="bottom-right" :offset="[18, 18]")
       .row
-        q-chip.col-shrink(v-if="online" color="positive" text-color="white" icon="mdi-wifi") Online
-        q-chip.col-shrink(v-else color="negative" text-color="white" icon="mdi-wifi-off") Offline
-        q-chip.col-shrink(icon="mdi-battery" text-color="white" :color="batt_percent > 20 ? 'positive' : batt_percent > 10 ? 'warning' : 'negative'") {{ batt_percent }}%
+        q-chip.col-shrink( :color="rest_status.color" text-color="white" icon="mdi-wifi" :label="rest_status.label")
+        q-chip.col-shrink( :color="ws_status.color" text-color="white" icon="mdi-wifi" :label="ws_status.label")
+        q-chip.col-shrink(icon="mdi-battery" text-color="white" :color="batt_status.color" :label="batt_status.label")
 
 
     q-page-sticky(position="bottom-left" :offset="[18, 18]")
@@ -100,29 +100,45 @@ const props = defineProps({
 })
 const instrument = computed(() => props.instrument)
 
-const online = ref(false)
-const strings = ref(4)
-const frets = ref(6)
-const strum_delay = ref(1000)
+const rest_online = ref(false)
+const ws_online = ref(false)
+const strings = ref(4) // overwritten by REST
+const frets = ref(6) // overwritten by REST
 
-const strum_it = ref(false)
+const strum_delay = ref(10)
+const strum_it = ref(true)
 
 const batt_percent = ref(0)
 const timer = ref(null)
 onMounted(async () => {
-  timer.value = setInterval(async () => {batt_percent.value = await sendCmd("GET", "battery")}, 6000)
-  batt_percent.value = await sendCmd("GET", "battery")
+  timer.value = setInterval(async () => {batt_percent.value = await sendWsCmd("GET", "battery")}, 60000)
+  batt_percent.value = await sendWsCmd("GET", "battery")
 })
 
 onMounted(async () => {
-  const info = await sendCmd("GET", "info")
+  const info = await sendRestCmd("GET", "info")
+  if (info) {
   strings.value = info.strings
   frets.value = info.fretters + 4
   if (info.instrument) {
-      online.value = true
+      rest_online.value = true
   }
+}
 })
 onUnmounted(() => clearInterval(timer.value))
+
+const rest_status = computed(() => ({
+  color: rest_online.value ? "positive" : "negative",
+  label: rest_online.value ? "REST" : "REST"
+}))
+const ws_status = computed(() => ({
+  color: ws_online.value ? "positive" : "negative",
+  label: ws_online.value ? "WS" : "WS"
+}))
+const batt_status = computed(() => ({
+  color: batt_percent.value > 20 ? "positive" : batt_percent.value > 10 ? "warning" : "negative",
+  label: batt_percent.value + "%"
+}))
 
 const interval = ref(0)
 let intervalTimer = null
@@ -156,11 +172,9 @@ const setChord = (chord) => {
     var pressed = chords[chord][f]
     out += pressed
     for (var s = 0; s < strings.value; s++) {
-      console.log(pressed, f, s, out[s])
       state.value[f] = state.value[f].substring(0, s) + pressed[s] + state.value[f].substring(s + 1)
     }
   }
-  console.log(out)
   sendCmd("POST", "chord", { pressed: out, chord: chord })
   if (strum_it.value) {
     sendCmd("POST", "strum", { delay: strum_delay.value })
@@ -168,7 +182,15 @@ const setChord = (chord) => {
 }
 
 const sendCmd = (method, cmd, args) => {
-	if (!instrument.value) return
+  if (ws_online.value) {
+  return sendWsCmd(method, cmd, args)
+  } else {
+  return sendRestCmd(method, cmd, args)
+  }
+}
+
+const sendRestCmd = (method, cmd, args) => {
+  if (!instrument.value) return
   const arg = typeof args === 'object'
     ? Object.entries(args).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
     : args
@@ -183,13 +205,97 @@ const sendCmd = (method, cmd, args) => {
       return response.text()
     })
     .then((data) => {
-      console.log('Command sent:', cmd, 'Response:', data)
+      console.log('[REST] Command sent:', cmd, 'Response:', data)
       if (method === 'GET') return JSON.parse(data)
     })
     .catch((error) => {
-      console.error('Error sending command:', error)
+      console.error('[REST] Error sending command:', error)
     })
 }
+
+const ws = ref(null)
+const pendingRequests = new Map()
+
+const connectWs = () => {
+  if (!instrument.value) return
+  ws.value = new WebSocket(`ws://${instrument.value.ip}:81`)
+
+  ws.value.onopen = () => {
+    console.log('[WS] Connected')
+    ws_online.value = true
+  }
+
+  ws.value.onclose = () => {
+    console.log('[WS] Disconnected')
+    ws_online.value = false
+    setTimeout(connectWs, 1000) // Reconnect attempt
+  }
+
+  ws.value.onerror = (error) => {
+    console.error('[WS] Error:', error)
+    ws_online.value = false
+  }
+
+  ws.value.onmessage = (event) => {
+    console.log('[WS] Message:', event.data)
+    try {
+      const response = JSON.parse(event.data)
+      const requestId = response.requestId
+      if (pendingRequests.has(requestId)) {
+        const { resolve } = pendingRequests.get(requestId)
+        pendingRequests.delete(requestId)
+        resolve(response)
+      }
+    } catch (e) {
+      console.error('[WS] Error parsing message:', e)
+    }
+  }
+}
+
+const sendWsCmd = (method, cmd, args) => {
+  if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
+    console.error('[WS] Not connected')
+    return sendRestCmd(method, cmd, args)
+  }
+
+  return new Promise((resolve, reject) => {
+    const message = {
+      cmd,
+      ...args
+    }
+
+    console.log('[WS] Sending:', message)
+    ws.value.send(JSON.stringify(message))
+
+    const messageHandler = (event) => {
+      console.log('[WS] Response:', event.data)
+      ws.value.removeEventListener('message', messageHandler)
+      try {
+        resolve(JSON.parse(event.data))
+      } catch (e) {
+        resolve(event.data)
+      }
+    }
+
+    ws.value.addEventListener('message', messageHandler)
+
+    // setTimeout(() => {
+    //   ws.value.removeEventListener('message', messageHandler)
+    //   console.log('[WS] Timeout ')
+    //   // sendRestCmd(method, cmd, args).then(resolve).catch(reject)
+    // }, 5000)
+  })
+}
+
+onMounted(() => {
+  connectWs()
+})
+
+onUnmounted(() => {
+  if (ws.value) {
+    ws.value.close()
+  }
+})
 
 const notes = ["C", "D", "E", "F", "G", "A", "B"]
 const variations = [{ label: "Major", value: "" }, { label: "Minor", value: "m" }, { label: "7", value: "7" }, { label: "Flat", value: "b" }, { label: "Major 7", value: "maj7" }, { label: "9", value: "9" }]
