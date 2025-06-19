@@ -1,6 +1,10 @@
 <template lang="pug">
   #GUITAR
 
+    .row.justify-center.q-my-lg.q-col-gutter-md
+      .col-1(v-for="chord in Object.keys(chords)" :key="chord")
+        q-btn.fit(:label="chord" color="primary" @click="setChord(chord)")
+
     .row.justify-center.q-my-lg
       .col-shrink
         q-markup-table
@@ -18,16 +22,25 @@
             tr.bg-grey-2
               th.text-right Pluck
               td(v-for="(name,s) in strings" :key="s")
-                q-btn(label="V" round color="primary" @click="sendCmd('pluck',{string:s})").mouseoverflash
+                q-btn(label="V" round color="primary" @click="sendCmd('POST','pluck',{string:s})").mouseoverflash
             tr.bg-grey-2
               th.text-right Strum
               td(v-for="(name,s) in strings" :key="s")
-                q-btn(label=">" color="primary" round @mouseleave="sendCmd('pluck',{string:s})").mouseoverflash
+                q-btn(label=">" color="primary" round @mouseleave="sendCmd('POST','pluck',{string:s})").mouseoverflash
 
             tr.bg-grey-2
               th.text-right Interval
               td(:colspan="strings.length")
                 q-slider(v-model="interval"  type="number" :min="0" :step="100" :max="5000" label="Interval")
+
+
+    q-page-sticky(position="bottom-right" :offset="[18, 18]")
+      div(style="width: 100px;")
+        q-linear-progress(:value="batt_percent/100" size="xl" color="primary" class="q-mt-md" width="100px")
+          .absolute-full.flex.flex-center
+            q-badge.text-white.text-bold {{ batt_percent }}%
+          q-tooltip Battery: {{ batt_percent }}%
+
 
     //- q-btn-group.q-ma-lg
     //-   q-btn(v-for="cmd in def.cmd" :key="cmd" :label="cmd" @click="sendCmd(cmd)")
@@ -46,7 +59,7 @@
   </template>
 
 <script setup>
-import { computed, watch, ref, onBeforeMount } from 'vue'
+import { computed, watch, ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
 	instrument: {
@@ -62,6 +75,13 @@ const instrument = computed(() => props.instrument)
 
 const strings = ref(['G', 'C', 'A', 'E'])
 const frets = ref(6)
+const batt_percent = ref(0)
+const timer = ref(null)
+onMounted(async () => {
+  timer.value = setInterval(async () => {batt_percent.value = await sendCmd("GET", "battery")}, 60000)
+  batt_percent.value = await sendCmd("GET", "battery")
+})
+onUnmounted(() => clearInterval(timer.value))
 
 const interval = ref(0)
 let intervalTimer = null
@@ -69,7 +89,7 @@ watch(interval, (newVal) => {
     clearInterval(intervalTimer)
   if (newVal > 0) {
     intervalTimer = setInterval(() => {
-      sendCmd("strum")
+      sendCmd("POST", "strum")
     }, newVal)
   }
 })
@@ -82,49 +102,50 @@ const getFretAt = (fret, string) => {
 const setFretAt = (fret, string, value) => {
   var set = value ? "1" : "0"
 	state.value[fret] = state.value[fret].substring(0, string) + set + state.value[fret].substring(string + 1)
-  sendCmd("fret", { fret: fret, pressed: state.value[fret] })
+  sendCmd("POST", "fret", { fret: fret, pressed: state.value[fret] })
 }
 
 const toggleFret = (fret, string) => {
 	setFretAt(fret, string, !getFretAt(fret, string) )
 }
 
-onBeforeMount(() => {
-  console.log(instrument.value)
-	for (let f = 0; f < frets.value; f++) {
-		if (!instrument.value.state.neck[f]) {
-			instrument.value.state.neck[f] = []
+const setChord = (chord) => {
+  for (var f = 0; f < 2; f++) {
+    var pressed = chords[chord][f]
+    sendCmd("POST", "fret", { fret: f, pressed: pressed })
+    for (var s = 0; s < strings.value.length; s++) {
+      state.value[f] = state.value[f].substring(0, s) + pressed[s] + state.value[f].substring(s + 1)
     }
-		for (let s = 0; s < strings.value.length; s++) {
-      // console.log(f, s, instrument.value.state)
-			instrument.value.state.neck[f][s] = false
-		}
-	}
-})
+  }
+}
 
-const sendCmd = (cmd, args) => {
+const sendCmd = (method, cmd, args) => {
 	if (!instrument.value) return
-  const arg = typeof args === 'object' ?
-    Object.entries(args)
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-      .join('&')
+  const arg = typeof args === 'object'
+    ? Object.entries(args).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
     : args
 
-	const url = `http://${instrument.value.ip}/api/${cmd}?${arg}`
-  // console.log(url)
-	fetch(url, {
-		method: 'POST',
-	})
-		.then((response) => {
-			if (!response.ok) throw new Error('Network response was not ok')
-			return response.text()
-		})
-		.then((data) => {
-			console.log('Command sent:', cmd, 'Response:', data)
-		})
-		.catch((error) => {
-			console.error('Error sending command:', error)
-		})
+  const url = `http://${instrument.value.ip}/api/${cmd}?${arg}`
+  return fetch(url, { method })
+    .then((response) => {
+      if (!response.ok) throw new Error('Network response was not ok')
+      return response.text()
+    })
+    .then((data) => {
+      if (method === 'GET') return data
+      console.log('Command sent:', cmd, 'Response:', data)
+    })
+    .catch((error) => {
+      console.error('Error sending command:', error)
+    })
+}
+
+
+const chords = {
+  "A": ["0100", "1000", "0000", "000", "0000", "0000"],
+  "B": ["0000", "0011", "0100", "1000", "0000", "0000"],
+  "C": ["0000", "0000", "0001", "0000", "0000", "0000"],
+  "D": ["0000", "1110", "0000", "0000", "0000", "0000"],
 }
 </script>
 <style scoped lang="scss">

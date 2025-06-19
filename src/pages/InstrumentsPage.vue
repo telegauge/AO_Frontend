@@ -1,7 +1,7 @@
 <template lang="pug">
 q-page.q-pa-md
   q-list(bordered separator)
-    q-item(v-for="instrument in instruments" :key="instrument.id" clickable :to="`/instruments/${instrument.id}`")
+    q-item(v-for="instrument in instruments" :key="instrument.id" clickable :to="`/instrument/${instrument.id}`")
       q-item-section
         q-item-label {{ instrument.name }}
         q-item-label(caption) {{ instrument.type }} - {{ instrument.ip }}
@@ -10,7 +10,7 @@ q-page.q-pa-md
     .text-h6.text-center Add to the Band
     .row.q-gutter-md
       q-btn.col(
-        v-for="t of Types"
+        v-for="t of Defs"
         stack
         :disabled="t.disabled"
         :key="t.value"
@@ -41,6 +41,6 @@ function AddInstrument(type) {
 		config: '',
 	})
 	store.instruments.push(instrument.value)
-	router.push({ path: `/instruments/${instrument.value.id}/edit` })
+	router.push({ path: `/instrument/${instrument.value.id}/edit` })
 }
 </script>
