@@ -9,6 +9,13 @@
               thead
                 tr
                   th
+                    q-checkbox(
+                      v-model="strum_fret"
+                      checked-icon="img:src/assets/icons/pick.png"
+                      unchecked-icon="mdi-block-helper"
+                      color="primary"
+                    )
+                      q-tooltip Auto-pluck when setting frets
                   th(v-for="(s) in strings" :key="s") {{ s }}
               tbody(v-if="instrument.state.neck")
                 tr(v-for="f in frets" :key="f")
@@ -18,12 +25,18 @@
 
                 tr.bg-grey-2
                   th.text-right Pluck
-                  td(v-for="(name,s) in strings" :key="s")
-                    q-btn(label="V" round color="primary" @click="sendCmd('POST','pluck',{string:s})").mouseoverflash
-                tr.bg-grey-2
+                  td(v-for="s in strings" :key="s")
+                    q-btn(label="V" round color="primary" @click="Pluck(s)").mouseoverflash
+                tr.bg-grey-2.desktop-only
                   th.text-right Strum
-                  td(v-for="(name,s) in strings" :key="s")
-                    q-btn(label=">" color="primary" round @mouseenter="FlashEl" @mouseleave="sendCmd('POST','pluck',{string:s})").mouseoverflash
+                  td(v-for="s in strings" :key="s")
+                    q-btn(
+                      label=">"
+                      color="primary"
+                      round
+                      @mouseenter="FlashEl"
+                      @mouseleave="Pluck(s)"
+                    )
 
                 //- tr.bg-grey-2
                 //-   th.text-right Interval
@@ -37,7 +50,12 @@
               thead
                 tr
                   th
-                    q-checkbox(v-model="strum_it")
+                    q-checkbox(
+                      v-model="strum_chord"
+                      checked-icon="img:src/assets/icons/pick.png"
+                      unchecked-icon="mdi-block-helper"
+                      color="primary"
+                    )
                       q-tooltip Strum when setting chords
                   th(v-for="note in notes" :key="note") {{ note }}
               tbody
@@ -106,7 +124,9 @@ const strings = ref(4) // overwritten by REST
 const frets = ref(6) // overwritten by REST
 
 const strum_delay = ref(10)
-const strum_it = ref(true)
+
+const strum_chord = ref(true)
+const strum_fret = ref(true)
 
 const batt_percent = ref(0)
 const timer = ref(null)
@@ -163,7 +183,15 @@ const setFretAt = (fret, string, value) => {
 }
 
 const toggleFret = (fret, string) => {
-	setFretAt(fret, string, !getFretAt(fret, string) )
+  const state = !getFretAt(fret, string)
+	setFretAt(fret, string, state )
+  if (strum_fret.value) {
+    sendCmd("POST", "pluck", { string: string })
+  }
+}
+
+const Pluck = (string) => {
+  sendCmd("POST", "pluck", { string: string })
 }
 
 const setChord = (chord) => {
@@ -176,7 +204,7 @@ const setChord = (chord) => {
     }
   }
   sendCmd("POST", "chord", { pressed: out, chord: chord })
-  if (strum_it.value) {
+  if (strum_chord.value) {
     sendCmd("POST", "strum", { delay: strum_delay.value })
   }
 }
@@ -306,10 +334,20 @@ const chords = {
 const showPrefs = ref(false)
 
 const FlashEl = (e) => {
-  e.target.style.opacity = '0.5'
+  const target = e.target || e.currentTarget
+  target.style.opacity = '0.5'
   setTimeout(() => {
-    e.target.style.opacity = '1'
+    target.style.opacity = '1'
   }, 1000)
+}
+
+const handleTouchMove = (e, string) => {
+  const touch = e.touches[0]
+  const target = document.elementFromPoint(touch.clientX, touch.clientY)
+  if (target && target.classList.contains('q-btn')) {
+    FlashEl({ target })
+    sendCmd('POST', 'pluck', { string })
+  }
 }
 </script>
 <style scoped lang="scss">
