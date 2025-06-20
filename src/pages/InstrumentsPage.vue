@@ -1,11 +1,9 @@
 <template lang="pug">
 q-page.q-pa-md
-  q-list(bordered separator)
-    q-item(v-for="instrument in instruments" :key="instrument.id" clickable :to="`/instrument/${instrument.id}`")
-      q-item-section
-        q-item-label {{ instrument.name }}
-        q-item-label(caption) {{ instrument.type }} - {{ instrument.ip }}
-  q-separator.q-mt-lg
+  .row
+    .col-6.col-md-4.col-lg-3(v-for="instrument in instruments" :key="instrument.id" )
+      InstrumentCard(:instrument="instrument")
+
   q-page-sticky(position="bottom" :offset="[18, 18]")
     .text-h6.text-center Add to the Band
     .row.q-gutter-md
@@ -27,6 +25,8 @@ q-page.q-pa-md
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useInstrumentsStore, Defs } from 'stores/instruments'
+
+import InstrumentCard from '../components/InstrumentCard.vue'
 
 const router = useRouter()
 const store = useInstrumentsStore()

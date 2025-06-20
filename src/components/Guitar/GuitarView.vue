@@ -20,13 +20,13 @@
               tbody(v-if="instrument.state.neck")
                 tr(v-for="f in frets" :key="f")
                   th.text-right Fret {{ f }}
-                  td(v-for="(name,s) in strings" :key="s")
-                    q-btn.fit(color="primary" :label="getFretAt(f-1,s) ? '⏺' : ''" @click="toggleFret(f-1,s)")
+                  td(v-for="(s) in strings" :key="s")
+                    q-btn.fit(color="primary" :label="getFretAt(f-1,s-1) ? '⏺' : ''" @click="toggleFret(f-1,s-1 )")
 
                 tr.bg-grey-2
                   th.text-right Pluck
                   td(v-for="s in strings" :key="s")
-                    q-btn(label="V" round color="primary" @click="Pluck(s)").mouseoverflash
+                    q-btn(label="V" round color="primary" @click="Pluck(s-1)").mouseoverflash
                 tr.bg-grey-2.desktop-only
                   th.text-right Strum
                   td(v-for="s in strings" :key="s")
@@ -35,7 +35,7 @@
                       color="primary"
                       round
                       @mouseenter="FlashEl"
-                      @mouseleave="Pluck(s)"
+                      @mouseleave="Pluck(s-1)"
                     )
 
                 //- tr.bg-grey-2
@@ -67,9 +67,9 @@
 
     q-page-sticky(position="bottom-right" :offset="[18, 18]")
       .row
-        q-chip.col-shrink( :color="rest_status.color" text-color="white" icon="mdi-wifi" :label="rest_status.label")
-        q-chip.col-shrink( :color="ws_status.color" text-color="white" icon="mdi-wifi" :label="ws_status.label")
-        q-chip.col-shrink(icon="mdi-battery" text-color="white" :color="batt_status.color" :label="batt_status.label")
+        q-chip.col-shrink( :color="rest_status.color" text-color="white" :icon="rest_status.icon" :label="rest_status.label")
+        q-chip.col-shrink( :color="ws_status.color" text-color="white" :icon="ws_status.icon" :label="ws_status.label")
+        q-chip.col-shrink(:icon="batt_status.icon" text-color="white" :color="batt_status.color" :label="batt_status.label")
 
 
     q-page-sticky(position="bottom-left" :offset="[18, 18]")
@@ -81,7 +81,15 @@
           .text-h6 Preferences
         q-card-section
           .text-subtitle2 Strum Delay
-          q-slider(v-model="strum_delay" type="number" :min="0" :max="5000" label="Delay")
+          q-input(
+            v-model.number="strum_delay"
+            filled
+            hint="Time between each note on the strum"
+            suffix="ms"
+            type="number"
+            :min="0"
+            :max="5000"
+            label="Delay")
         q-card-actions(align="right")
           q-btn(flat label="Close" color="primary" v-close-popup)
 
@@ -128,11 +136,13 @@ const strum_delay = ref(10)
 const strum_chord = ref(true)
 const strum_fret = ref(true)
 
+const state = ref(["0000", "0000", "0000", "0000", "0000", "0000"])
+
 const batt_percent = ref(0)
 const timer = ref(null)
 onMounted(async () => {
-  timer.value = setInterval(async () => {batt_percent.value = await sendWsCmd("GET", "battery")}, 60000)
-  batt_percent.value = await sendWsCmd("GET", "battery")
+  timer.value = setInterval(updateBattery, 60000)
+  updateBattery()
 })
 
 onMounted(async () => {
@@ -149,15 +159,20 @@ onUnmounted(() => clearInterval(timer.value))
 
 const rest_status = computed(() => ({
   color: rest_online.value ? "positive" : "negative",
-  label: rest_online.value ? "REST" : "REST"
+  label: rest_online.value ? "REST" : "REST",
+  icon: rest_online.value ? "mdi-wifi" : "mdi-wifi-alert"
 }))
 const ws_status = computed(() => ({
   color: ws_online.value ? "positive" : "negative",
-  label: ws_online.value ? "WS" : "WS"
+  label: ws_online.value ? "WS" : "WS",
+  icon: ws_online.value ? "mdi-wifi-arrow-left-right" : "mdi-wifi-alert"
 }))
 const batt_status = computed(() => ({
   color: batt_percent.value > 20 ? "positive" : batt_percent.value > 10 ? "warning" : "negative",
-  label: batt_percent.value + "%"
+  label: batt_percent.value + "%",
+  icon: batt_percent.value < 10 ?
+    "mdi-battery-alert-variant-outline" :
+    batt_percent.value >= 100 ? 'mdi-battery-check' : "mdi-battery-" + ((batt_percent.value / 10) | 0) + "0"
 }))
 
 const interval = ref(0)
@@ -171,13 +186,20 @@ watch(interval, (newVal) => {
   }
 })
 
-const state = ref(["0000", "0000", "0000", "0000", "0000", "0000"])
+
+const updateBattery = async () => {
+  const batt = await sendRestCmd("GET", "battery")
+  if (batt) {
+    batt_percent.value = batt.percent
+  }
+}
 
 const getFretAt = (fret, string) => {
 	return state.value[fret][string] == 1
 }
 const setFretAt = (fret, string, value) => {
   var set = value ? "1" : "0"
+  console.log(fret, string, set)
 	state.value[fret] = state.value[fret].substring(0, string) + set + state.value[fret].substring(string + 1)
   sendCmd("POST", "fret", { fret: fret, pressed: state.value[fret] })
 }
@@ -200,7 +222,7 @@ const setChord = (chord) => {
     var pressed = chords[chord][f]
     out += pressed
     for (var s = 0; s < strings.value; s++) {
-      state.value[f] = state.value[f].substring(0, s) + pressed[s] + state.value[f].substring(s + 1)
+      state.value[f] = state.value[f].substring(0, s) + pressed[s] + state.value[f].substring(s )
     }
   }
   sendCmd("POST", "chord", { pressed: out, chord: chord })
@@ -282,6 +304,7 @@ const connectWs = () => {
 const sendWsCmd = (method, cmd, args) => {
   if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
     console.error('[WS] Not connected')
+    ws_online.value = false
     return sendRestCmd(method, cmd, args)
   }
 
@@ -315,19 +338,27 @@ const chords = {
   "Am": ["0000", "1000", "0000", "0000", "0000", "0000"],
   "A7": ["0100", "0000", "0000", "0000", "0000", "0000"],
   "B": ["0000", "0011", "0100", "1000", "0000", "0000"],
+  "Bb": ["0011", "0100", "1000", "0000", "0000", "0000"],
+  "Bm": ["0000", "0111", "1000", "0000", "0000", "0000"],
   "C": ["0000", "0000", "0001", "0000", "0000", "0000"],
   "Cm": ["0000", "0000", "0111", "0000", "0000", "0000"],
   "C7": ["0001", "0000", "0000", "0000", "0000", "0000"],
   "C9": ["0001", "0100", "0000", "0000", "0000", "0000"],
   "Cmaj7": ["0000", "0001", "0000", "0000", "0000", "0000"],
-  "D": ["0000", "1110", "0000", "0001", "0000", "0000"],
+  "D": ["0000", "1110", "0000", "0000", "0000", "0000"],
   "D7": ["0000", "1110", "0001", "0000", "0000", "0000"],
   "Db": ["1110", "0000", "0000", "0001", "0000", "0000"],
   "Dm": ["0010", "1100", "0000", "0000", "0000", "0000"],
+  "D9": ["0000", "1010", "0001", "0100", "0000", "0000"],
   "E": ["0000", "0001", "0000", "1110", "0000", "0000"],
+  "Em": ["0000", "0001", "0010", "0100", "0000", "0000"],
+  "E7": ["1000", "0101", "0000", "0000", "0000", "0000"],
+  "Eb": ["0001", "0000", "0110", "0000", "0000", "0000"],
   "F": ["0010", "1000", "0000", "0000", "0000", "0000"],
+  "Fm": ["1010", "0000", "0001", "0000", "0000", "0000"],
   "G": ["0000", "0101", "0010", "0000", "0000", "0000"],
   "G7": ["0010", "0101", "0000", "0000", "0000", "0000"],
+  "Gm": ["0001", "0100", "0010", "0000", "0000", "0000"],
 
 }
 
