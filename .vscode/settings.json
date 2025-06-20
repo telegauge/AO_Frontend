@@ -31,6 +31,7 @@
 		"**/components/**/View.vue": "[View] ${dirname}",
 		"**/pages/**/Edit.vue": "[PAGE]${dirname} (edit)",
 		"**/pages/**/View.vue": "[PAGE]${dirname} (view)",
-		"**/stores/*.js": "[Store] ${filename}"
+		"**/stores/*.js": "[Store] ${filename}",
+		"**/pages/*/*/*.vue": "[PAGE]${dirname} (${filename})"
 	}
 }

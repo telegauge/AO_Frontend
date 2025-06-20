@@ -1,5 +1,5 @@
 <template lang="pug">
-q-card.cursor-pointer(@click="router.push(`/instrument/${instrument.id}`)")
+q-card.cursor-pointer(@click="router.push(`/instruments/${instrument.id}`)")
   q-card-section(horizontal)
     q-icon(size="100px" :name="instrument.type")
     q-card-section

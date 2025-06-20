@@ -9,7 +9,7 @@ q-page.q-pa-md
     q-page-sticky(position="bottom-right" :offset="[18, 18]")
       q-btn(label="Delete" color="negative" @click="onDelete")
     q-page-sticky(position="bottom-left" :offset="[18, 18]")
-      q-btn(label="<<" round color="primary" :to="`/instrument/${props.id}`")
+      q-btn(label="<<" round color="primary" :to="`/instruments/${props.id}`")
   div(v-else)
     p Instrument not found
 </template>

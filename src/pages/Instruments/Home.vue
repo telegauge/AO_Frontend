@@ -1,5 +1,5 @@
 <template lang="pug">
-q-page.q-pa-md
+q-page(padding)
   .row
     .col-6.col-md-4.col-lg-3(v-for="instrument in instruments" :key="instrument.id" )
       InstrumentCard(:instrument="instrument")
@@ -26,7 +26,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useInstrumentsStore, Defs } from 'stores/instruments'
 
-import InstrumentCard from '../components/InstrumentCard.vue'
+import InstrumentCard from './components/Card.vue'
 
 const router = useRouter()
 const store = useInstrumentsStore()

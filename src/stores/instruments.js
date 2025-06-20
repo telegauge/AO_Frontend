@@ -21,7 +21,7 @@ export const Defs = [
 		examples: ['Drums', 'Percussion'],
 		disabled: true,
 		value: 'drums',
-		icon: 'drums',
+		icon: 'drum',
 		cmd: [],
 	},
 	{
@@ -29,7 +29,7 @@ export const Defs = [
 		examples: ['Violin', 'Cello', 'Viola'],
 		disabled: true,
 		value: 'bow',
-		icon: 'bowed',
+		icon: 'bow',
 		cmd: [],
 	},
 	{
@@ -40,6 +40,20 @@ export const Defs = [
 		icon: 'wind',
 		cmd: [],
 	},
+  { label: 'Brass',
+    examples: ['Trumpet', 'Trombone', 'Tuba'],
+    disabled: true,
+    value: 'brass',
+    icon: 'mdi-bugle',
+    cmd: [],
+  },
+  { label: "Other",
+    examples: ['Synthesizer', 'Sampler', 'Drum Machine'],
+    disabled: true,
+    value: 'misc',
+    icon: 'mdi-music-note',
+    cmd: [],
+  },
 ]
 
 export const useInstrumentsStore = defineStore('instruments', {

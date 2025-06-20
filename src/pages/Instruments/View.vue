@@ -11,7 +11,7 @@ q-page(padding)
     //-   q-btn(icon="edit" flat :to="`/instruments/${props.id}/edit`")
 
     q-expansion-item(
-        v-if="instrument.config"
+        v-if="instrument.id"
         header-class="bg-secondary"
         :label="instrument.name"
         :caption="instrument.type"

@@ -3,4 +3,4 @@ description:
 globs: 
 alwaysApply: true
 ---
-This project is intended to communicate with physical musical instruments.  It will accept user input and send that via some API to the actual insturments.
+This project is intended to communicate with physical musical instruments.  It will accept user input and send that via some API to the actual insturments.  And Instrument is a physical musical instrument, with a small computer attached that can control it.  A Track is a list of instruments, notes and other data used to create a song.

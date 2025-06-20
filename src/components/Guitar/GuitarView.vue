@@ -11,13 +11,13 @@
                   th
                     q-checkbox(
                       v-model="strum_fret"
-                      checked-icon="img:src/assets/icons/pick.png"
-                      unchecked-icon="mdi-block-helper"
+                      checked-icon="mdi-guitar-pick"
+                      unchecked-icon="mdi-guitar-pick-outline"
                       color="primary"
                     )
                       q-tooltip Auto-pluck when setting frets
                   th(v-for="(s) in strings" :key="s") {{ s }}
-              tbody(v-if="instrument.state.neck")
+              tbody(v-if="instrument.state?.neck")
                 tr(v-for="f in frets" :key="f")
                   th.text-right Fret {{ f }}
                   td(v-for="(s) in strings" :key="s")
@@ -52,8 +52,8 @@
                   th
                     q-checkbox(
                       v-model="strum_chord"
-                      checked-icon="img:src/assets/icons/pick.png"
-                      unchecked-icon="mdi-block-helper"
+                      checked-icon="mdi-guitar-pick"
+                      unchecked-icon="mdi-guitar-pick-outline"
                       color="primary"
                     )
                       q-tooltip Strum when setting chords
@@ -241,6 +241,7 @@ const sendCmd = (method, cmd, args) => {
 
 const sendRestCmd = (method, cmd, args) => {
   if (!instrument.value) return
+  if (!instrument.value.ip) return
   const arg = typeof args === 'object'
     ? Object.entries(args).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
     : args
@@ -268,6 +269,7 @@ const pendingRequests = new Map()
 
 const connectWs = () => {
   if (!instrument.value) return
+  if (!instrument.value.ip) return
   ws.value = new WebSocket(`ws://${instrument.value.ip}:81`)
 
   ws.value.onopen = () => {
@@ -302,6 +304,8 @@ const connectWs = () => {
 }
 
 const sendWsCmd = (method, cmd, args) => {
+  if (!instrument.value) return
+
   if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
     console.error('[WS] Not connected')
     ws_online.value = false
