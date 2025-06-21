@@ -12,12 +12,16 @@ q-page.q-pa-md
       q-btn(label="<<" round color="primary" :to="`/instruments/${props.id}`")
   div(v-else)
     p Instrument not found
+
+  pre {{ instrument }}
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useInstrumentsStore, Defs } from 'stores/instruments'
 import { useRouter } from 'vue-router'
+
+import { useInstrument } from './useInstrument.js'
 
 const props = defineProps({
 	id: {
@@ -28,9 +32,10 @@ const props = defineProps({
 const id = computed(() => Number(props.id))
 const store = useInstrumentsStore()
 const router = useRouter()
+const { instrument } = useInstrument(id)
 
-let instrument = null
-instrument = ref(store.instruments.find((i) => i.id === id.value))
+// let instrument = null
+// instrument = ref(store.instruments.find((i) => i.id === id.value))
 
 function onDelete() {
 	store.removeInstrument(id.value)

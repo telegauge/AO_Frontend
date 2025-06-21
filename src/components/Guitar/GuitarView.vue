@@ -38,11 +38,6 @@
                       @mouseleave="Pluck(s-1)"
                     )
 
-                //- tr.bg-grey-2
-                //-   th.text-right Interval
-                //-   td(:colspan="strings")
-                //-     q-slider(v-model="interval"  type="number" :min="0" :step="100" :max="5000" label="Interval")
-
       .col-12.col-lg-8
         .row.justify-center.q-my-lg
           .col-shrink
@@ -113,10 +108,11 @@
 
 <script setup>
 import { computed, watch, ref, onMounted, onUnmounted } from 'vue'
+import { useInstrument } from 'src/pages/Instruments/useInstrument.js'
 
 const props = defineProps({
-	instrument: {
-		type: Object,
+	id: {
+		type: [String, Number],
 		required: true,
 	},
 	def: {
@@ -124,10 +120,9 @@ const props = defineProps({
 		required: true,
 	},
 })
-const instrument = computed(() => props.instrument)
 
-const rest_online = ref(false)
-const ws_online = ref(false)
+const { instrument, sendCmd, sendRestCmd, connect, disconnect, ws_online, rest_online } = useInstrument(props.id)
+
 const strings = ref(4) // overwritten by REST
 const frets = ref(6) // overwritten by REST
 
@@ -140,31 +135,31 @@ const state = ref(["0000", "0000", "0000", "0000", "0000", "0000"])
 
 const batt_percent = ref(0)
 const timer = ref(null)
+
 onMounted(async () => {
+  connect()
+  const info = await sendRestCmd("GET", "info")
+  if (info) {
+    strings.value = info.strings
+    frets.value = info.fretters + 4
+  }
   timer.value = setInterval(updateBattery, 60000)
   updateBattery()
 })
 
-onMounted(async () => {
-  const info = await sendRestCmd("GET", "info")
-  if (info) {
-  strings.value = info.strings
-  frets.value = info.fretters + 4
-  if (info.instrument) {
-      rest_online.value = true
-  }
-}
+onUnmounted(() => {
+  disconnect()
+  clearInterval(timer.value)
 })
-onUnmounted(() => clearInterval(timer.value))
 
 const rest_status = computed(() => ({
   color: rest_online.value ? "positive" : "negative",
-  label: rest_online.value ? "REST" : "REST",
+  label: "REST",
   icon: rest_online.value ? "mdi-wifi" : "mdi-wifi-alert"
 }))
 const ws_status = computed(() => ({
   color: ws_online.value ? "positive" : "negative",
-  label: ws_online.value ? "WS" : "WS",
+  label: "WS",
   icon: ws_online.value ? "mdi-wifi-arrow-left-right" : "mdi-wifi-alert"
 }))
 const batt_status = computed(() => ({
@@ -230,109 +225,6 @@ const setChord = (chord) => {
     sendCmd("POST", "strum", { delay: strum_delay.value })
   }
 }
-
-const sendCmd = (method, cmd, args) => {
-  if (ws_online.value) {
-  return sendWsCmd(method, cmd, args)
-  } else {
-  return sendRestCmd(method, cmd, args)
-  }
-}
-
-const sendRestCmd = (method, cmd, args) => {
-  if (!instrument.value) return
-  if (!instrument.value.ip) return
-  const arg = typeof args === 'object'
-    ? Object.entries(args).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
-    : args
-
-  let url = `http://${instrument.value.ip}/api/${cmd}`
-  if (args) {
-    url += `?${arg}`
-  }
-  return fetch(url, { method })
-    .then((response) => {
-      if (!response.ok) throw new Error('Network response was not ok')
-      return response.text()
-    })
-    .then((data) => {
-      console.log('[REST] Command sent:', cmd, 'Response:', data)
-      if (method === 'GET') return JSON.parse(data)
-    })
-    .catch((error) => {
-      console.error('[REST] Error sending command:', error)
-    })
-}
-
-const ws = ref(null)
-const pendingRequests = new Map()
-
-const connectWs = () => {
-  if (!instrument.value) return
-  if (!instrument.value.ip) return
-  ws.value = new WebSocket(`ws://${instrument.value.ip}:81`)
-
-  ws.value.onopen = () => {
-    console.log('[WS] Connected')
-    ws_online.value = true
-  }
-
-  ws.value.onclose = () => {
-    console.log('[WS] Disconnected')
-    ws_online.value = false
-    setTimeout(connectWs, 1000) // Reconnect attempt
-  }
-
-  ws.value.onerror = (error) => {
-    console.error('[WS] Error:', error)
-    ws_online.value = false
-  }
-
-  ws.value.onmessage = (event) => {
-    console.log('[WS] Message:', event.data)
-    try {
-      const response = JSON.parse(event.data)
-      if (response.cmd && pendingRequests.has(response.cmd)) {
-        const resolve = pendingRequests.get(response.cmd)
-        pendingRequests.delete(response.cmd)
-        resolve(response)
-      }
-    } catch (e) {
-      console.error('[WS] Error parsing message:', e)
-    }
-  }
-}
-
-const sendWsCmd = (method, cmd, args) => {
-  if (!instrument.value) return
-
-  if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
-    console.error('[WS] Not connected')
-    ws_online.value = false
-    return sendRestCmd(method, cmd, args)
-  }
-
-  return new Promise((resolve) => {
-    const message = {
-      cmd,
-      ...args
-    }
-
-    console.log('[WS] Sending:', message)
-    pendingRequests.set(cmd, resolve)
-    ws.value.send(JSON.stringify(message))
-  })
-}
-
-onMounted(() => {
-  connectWs()
-})
-
-onUnmounted(() => {
-  if (ws.value) {
-    ws.value.close()
-  }
-})
 
 const notes = ["C", "D", "E", "F", "G", "A", "B"]
 const variations = [{ label: "Major", value: "" }, { label: "Minor", value: "m" }, { label: "7", value: "7" }, { label: "Flat", value: "b" }, { label: "Major 7", value: "maj7" }, { label: "9", value: "9" }]

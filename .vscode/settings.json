@@ -26,12 +26,12 @@
 		"titleBar.inactiveForeground": "#e7e7e799"
 	},
 	"peacock.color": "#207896",
-	"workbench.editor.customLabels.patterns": {
-		"**/components/**/Edit.vue": "[Edit] ${dirname}",
-		"**/components/**/View.vue": "[View] ${dirname}",
-		"**/pages/**/Edit.vue": "[PAGE]${dirname} (edit)",
-		"**/pages/**/View.vue": "[PAGE]${dirname} (view)",
-		"**/stores/*.js": "[Store] ${filename}",
-		"**/pages/*/*/*.vue": "[PAGE]${dirname} (${filename})"
-	}
+	// "workbench.editor.customLabels.patterns": {
+	// 	"**/components/**/Edit.vue": "[Edit] ${dirname}",
+	// 	"**/components/**/View.vue": "[View] ${dirname}",
+	// 	"**/pages/**/Edit.vue": "[PAGE]${dirname} (edit)",
+	// 	"**/pages/**/View.vue": "[PAGE]${dirname} (view)",
+	// 	"**/stores/*.js": "[Store] ${filename}",
+	// 	"**/pages/*/*/*.vue": "[PAGE]${dirname} (${filename})"
+	// }
 }

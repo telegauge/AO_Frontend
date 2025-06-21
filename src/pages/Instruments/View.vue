@@ -29,7 +29,7 @@ q-page(padding)
           q-space
           q-btn(icon="edit" label="Edit" color="primary" :to="`/instruments/${props.id}/edit`")
 
-    component(:is="views[instrument.type]" :def="def" :instrument="instrument")
+    component(:is="views[instrument.type]" :def="def" :id="instrument.id")
 
     //- q-page-sticky(position="bottom-left" :offset="[18, 18]")
     //-   q-btn(

@@ -1,6 +1,6 @@
 <template lang="pug">
 td
-  q-btn(:icon="actions.find(a => a.value === track.action)?.icon" color="primary")
+  q-btn(:icon="actions.find(a => a.value === track.action)?.icon" :color="track.action === 'rest' ? 'grey' : 'primary'")
     q-menu
       q-list
         q-item(v-for="a in actions" v-close-popup :key="a.value" clickable :value="a.value" @click="track.action = a.value")
