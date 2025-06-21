@@ -10,6 +10,8 @@ export function useComms(instrument) {
 
   const connectWs = () => {
     if (!instrument.value || !instrument.value.ip) return
+    if (instrument.value.ip.length < 10) return
+
     ws.value = new WebSocket(`ws://${instrument.value.ip}:81`)
 
     ws.value.onopen = () => {
@@ -58,7 +60,7 @@ export function useComms(instrument) {
         ...args
       }
 
-      console.log('[WS] Sending:', message)
+      console.log('[WS] Sending:', instrument.value.ip, message)
       pendingRequests.set(cmd, resolve)
       ws.value.send(JSON.stringify(message))
     })
@@ -66,8 +68,13 @@ export function useComms(instrument) {
 
 
   const sendRestCmd = (method, cmd, args) => {
-    if (!instrument.value) return
-    if (!instrument.value.ip) return
+    if (!instrument.value || !instrument.value.ip) {
+      return Promise.resolve()
+    }
+    if (instrument.value.ip.length < 10) {
+      return Promise.resolve()
+    }
+
     const arg = typeof args === 'object'
       ? Object.entries(args).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
       : args

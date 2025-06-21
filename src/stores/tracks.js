@@ -25,6 +25,7 @@ export const useTracksStore = defineStore('tracks', {
         rows: [],
         instruments: [],
         timesignature: '4/4',
+        tempo: 120,
       })
       return id
     },

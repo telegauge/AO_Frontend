@@ -10,9 +10,11 @@ td
             q-item-label {{ a.label }}
 
 td(v-if="track.action === 'note'")
-  q-input(v-model="track.note" filled label="Note" dense mask="AXXXX")
+  q-input(v-model="track.note" filled label="Play Note" dense )
 td(v-else-if="track.action === 'chord'")
-  q-input(v-model="track.chord" filled label="Chord" dense )
+  q-input(v-model="track.chord" filled label="Strum Chord" dense )
+td(v-else-if="track.action === 'pluck'")
+  q-input(v-model.number="track.string" type="number" filled label="Pluck String" dense )
 td(v-else-if="track.action === 'rest'").text-center --
 td(v-else)
 
@@ -52,6 +54,7 @@ const track = computed(() => props.track)
 const actions = [
   { label: "Note", value: "note", icon: "mdi-music-note" },
   { label: "Chord", value: "chord", icon: "mdi-guitar-acoustic" },
+  { label: "Pluck", value: "pluck", icon: "mdi-guitar-pick" },
   { label: "Rest", value: "rest", icon: "mdi-music-note-off" },
 ]
 

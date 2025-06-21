@@ -4,3 +4,5 @@ globs: *vue
 alwaysApply: false
 ---
 Data is currently loaded and saved via Pinia store, and it's saved in real time.  Therefore, no "Save" action is needed as data is constantly updated.  Also, the template language is Pug, the style language is SCSS.  You don't have to use pronouns when talking, just say "Searching..." intead of "Let me search..".  Say "Updated..." instead of "I have updated..."
+
+When "thinking", keep the thoughts short and to the point. 
