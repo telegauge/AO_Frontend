@@ -8,7 +8,7 @@ q-page(padding)
         q-btn(icon="stop" @click="stop" color="primary" label="Stop")
     .col-auto
       .text-caption Tempo
-      q-slider(v-model="tempo" :min="5" :max="100" :step="1" label :label-value="tempo + ' BPM'" style="width: 200px")
+      q-slider(v-model="tempo" :min="5" :max="70" :step="1" label :label-value="tempo + ' BPM'" style="width: 200px")
     .col
       q-option-group(
         v-model="activeInstruments"
@@ -86,6 +86,7 @@ watch(tempo, (newTempo) => {
   if (isPlaying.value) {
     clearInterval(intervalId)
     const interval = (60 / newTempo / 4) * 1000 // 16th notes
+    clearInterval(intervalId)
     intervalId = setInterval(tick, interval)
   }
 })
@@ -95,6 +96,7 @@ const play = () => {
   isPlaying.value = true
   currentRow.value = -1
   const interval = (60 / tempo.value / 4) * 1000 // 16th notes
+  clearInterval(intervalId)
   intervalId = setInterval(tick, interval)
 }
 
@@ -123,8 +125,25 @@ const tick = () => {
       if (noteData && noteData.action !== 'rest') {
         const comms = instrumentComms.value[instrument.id]
         if (comms) {
-          console.log(`Playing ${JSON.stringify(noteData)} on ${instrument.name}`)
-          comms.sendCmd('POST', noteData.action, noteData)
+          const action = noteData.action
+          let payload = {}
+          switch (action) {
+            case 'pluck':
+              payload = { string: noteData.string }
+              break
+            case 'chord':
+              if (noteData.chord) payload.chord = noteData.chord
+              if (noteData.note) payload.note = noteData.note
+              if (noteData.mode) payload.mode = noteData.mode
+              break
+            case 'note':
+              payload = { note: noteData.note }
+              break
+            default:
+              const { action, id, ...rest } = noteData
+              payload = rest
+          }
+          comms.sendCmd('POST', action, payload)
         }
       }
     }

@@ -5,6 +5,7 @@
       .col-12.col-lg-4
         .row.justify-center.q-my-lg
           .col-shrink
+            pre {{ state }}
             q-markup-table
               thead
                 tr
@@ -21,12 +22,12 @@
                 tr(v-for="f in frets" :key="f")
                   th.text-right Fret {{ f }}
                   td(v-for="(s) in strings" :key="s")
-                    q-btn.fit(color="primary" :label="getFretAt(f-1,s-1) ? '⏺' : ''" @click="toggleFret(f-1,s-1 )")
+                    q-btn.fit(color="primary" :label="getFretAt(f,s) ? '⏺' : ''" @click="toggleFret(f,s )")
 
                 tr.bg-grey-2
                   th.text-right Pluck
                   td(v-for="s in strings" :key="s")
-                    q-btn(label="V" round color="primary" @click="Pluck(s-1)").mouseoverflash
+                    q-btn(label="V" round color="primary" @click="Pluck(s)").mouseoverflash
                 tr.bg-grey-2.desktop-only
                   th.text-right Strum
                   td(v-for="s in strings" :key="s")
@@ -35,7 +36,7 @@
                       color="primary"
                       round
                       @mouseenter="FlashEl"
-                      @mouseleave="Pluck(s-1)"
+                      @mouseleave="Pluck(s)"
                     )
 
       .col-12.col-lg-8
@@ -124,15 +125,16 @@ const props = defineProps({
 const { instrument, sendCmd, sendRestCmd, connect, disconnect, ws_online, rest_online } = useInstrument(props.id)
 
 const strings = ref(4) // overwritten by REST
-const frets = ref(6) // overwritten by REST
+const frets = ref(0) // overwritten by REST
 
 const strum_delay = ref(10)
 
 const strum_chord = ref(true)
 const strum_fret = ref(true)
 
-const state = ref(["0000", "0000", "0000", "0000", "0000", "0000"])
+const state = ref("0000") // e.g., "4322" for 4 strings
 
+let last_batt_percent = 0
 const batt_percent = ref(0)
 const timer = ref(null)
 
@@ -141,9 +143,9 @@ onMounted(async () => {
   const info = await sendRestCmd("GET", "info")
   if (info) {
     strings.value = info.strings
-    frets.value = info.fretters + 4
+    frets.value = info.fretters
   }
-  timer.value = setInterval(updateBattery, 60000)
+  timer.value = setInterval(updateBattery, 120000)
   updateBattery()
 })
 
@@ -162,13 +164,18 @@ const ws_status = computed(() => ({
   label: "WS",
   icon: ws_online.value ? "mdi-wifi-arrow-left-right" : "mdi-wifi-alert"
 }))
-const batt_status = computed(() => ({
-  color: batt_percent.value > 20 ? "positive" : batt_percent.value > 10 ? "warning" : "negative",
-  label: batt_percent.value + "%",
-  icon: batt_percent.value < 10 ?
-    "mdi-battery-alert-variant-outline" :
-    batt_percent.value >= 100 ? 'mdi-battery-check' : "mdi-battery-" + ((batt_percent.value / 10) | 0) + "0"
-}))
+const batt_status = computed(() => {
+  var batt = "mdi-battery-"
+  if (batt_percent.value > last_batt_percent)
+    batt = "mdi-battery-charging-"
+  return {
+    color: batt_percent.value > 20 ? "positive" : batt_percent.value > 10 ? "warning" : "negative",
+    label: batt_percent.value + "%",
+    icon: batt_percent.value < 10 ?
+      "mdi-battery-alert-variant-outline" :
+      batt_percent.value >= 100 ? 'mdi-battery-check' : batt + ((batt_percent.value / 10) | 0) + "0"
+    }
+})
 
 const interval = ref(0)
 let intervalTimer = null
@@ -185,23 +192,26 @@ watch(interval, (newVal) => {
 const updateBattery = async () => {
   const batt = await sendRestCmd("GET", "battery")
   if (batt) {
+    last_batt_percent = batt_percent.value
     batt_percent.value = batt.percent
   }
 }
 
 const getFretAt = (fret, string) => {
-	return state.value[fret][string] == 1
+  // Returns true if the string is pressed at this fret
+  return parseInt(state.value[string - 1] || 0) === fret
 }
 const setFretAt = (fret, string, value) => {
-  var set = value ? "1" : "0"
-  console.log(fret, string, set)
-	state.value[fret] = state.value[fret].substring(0, string) + set + state.value[fret].substring(string + 1)
-  sendCmd("POST", "fret", { fret: fret, pressed: state.value[fret] })
+  // If value is true, set this string to this fret, else set to 0 (open)
+  let arr = state.value.split("")
+  arr[string] = value ? fret.toString() : "0"
+  state.value = arr.join("")
+  sendCmd("POST", "fret", { pressed: state.value })
 }
-
 const toggleFret = (fret, string) => {
-  const state = !getFretAt(fret, string)
-	setFretAt(fret, string, state )
+  console.log("toggleFret", fret, string)
+  const isPressed = getFretAt(fret, string)
+  setFretAt(fret, string, !isPressed)
   if (strum_fret.value) {
     sendCmd("POST", "pluck", { string: string })
   }
@@ -212,15 +222,9 @@ const Pluck = (string) => {
 }
 
 const setChord = (chord) => {
-  var out = ""
-  for (var f = 0; f < frets.value; f++) {
-    var pressed = chords[chord][f]
-    out += pressed
-    for (var s = 0; s < strings.value; s++) {
-      state.value[f] = state.value[f].substring(0, s) + pressed[s] + state.value[f].substring(s )
-    }
-  }
-  sendCmd("POST", "chord", { pressed: out, chord: chord })
+  // chord is a string like "4322"
+  state.value = chords[chord]
+  sendCmd("POST", "chord", { pressed: state.value, chord: chord })
   if (strum_chord.value) {
     sendCmd("POST", "strum", { delay: strum_delay.value })
   }
@@ -230,32 +234,31 @@ const notes = ["C", "D", "E", "F", "G", "A", "B"]
 const variations = [{ label: "Major", value: "" }, { label: "Minor", value: "m" }, { label: "7", value: "7" }, { label: "Flat", value: "b" }, { label: "Major 7", value: "maj7" }, { label: "9", value: "9" }]
 
 const chords = {
-  "A": ["0100", "1000", "0000", "00000", "0000", "0000"],
-  "Am": ["0000", "1000", "0000", "0000", "0000", "0000"],
-  "A7": ["0100", "0000", "0000", "0000", "0000", "0000"],
-  "B": ["0000", "0011", "0100", "1000", "0000", "0000"],
-  "Bb": ["0011", "0100", "1000", "0000", "0000", "0000"],
-  "Bm": ["0000", "0111", "1000", "0000", "0000", "0000"],
-  "C": ["0000", "0000", "0001", "0000", "0000", "0000"],
-  "Cm": ["0000", "0000", "0111", "0000", "0000", "0000"],
-  "C7": ["0001", "0000", "0000", "0000", "0000", "0000"],
-  "C9": ["0001", "0100", "0000", "0000", "0000", "0000"],
-  "Cmaj7": ["0000", "0001", "0000", "0000", "0000", "0000"],
-  "D": ["0000", "1110", "0000", "0000", "0000", "0000"],
-  "D7": ["0000", "1110", "0001", "0000", "0000", "0000"],
-  "Db": ["1110", "0000", "0000", "0001", "0000", "0000"],
-  "Dm": ["0010", "1100", "0000", "0000", "0000", "0000"],
-  "D9": ["0000", "1010", "0001", "0100", "0000", "0000"],
-  "E": ["0000", "0001", "0000", "1110", "0000", "0000"],
-  "Em": ["0000", "0001", "0010", "0100", "0000", "0000"],
-  "E7": ["1000", "0101", "0000", "0000", "0000", "0000"],
-  "Eb": ["0001", "0000", "0110", "0000", "0000", "0000"],
-  "F": ["0010", "1000", "0000", "0000", "0000", "0000"],
-  "Fm": ["1010", "0000", "0001", "0000", "0000", "0000"],
-  "G": ["0000", "0101", "0010", "0000", "0000", "0000"],
-  "G7": ["0010", "0101", "0000", "0000", "0000", "0000"],
-  "Gm": ["0001", "0100", "0010", "0000", "0000", "0000"],
-
+  "A": "2100",
+  "Am": "2000",
+  "A7": "0100",
+  "B": "4322",
+  "Bb": "3211",
+  "Bm": "4222",
+  "C": "0003",
+  "Cm": "0333",
+  "C7": "0210",
+  "C9": "0232",
+  "Cmaj7": "0200",
+  "D": "2220",
+  "D7": "2120",
+  "Db": "1110",
+  "Dm": "2210",
+  "D9": "2222",
+  "E": "1002",
+  "Em": "0000",
+  "E7": "1202",
+  "Eb": "1343",
+  "F": "2010",
+  "Fm": "2110",
+  "G": "0232",
+  "G7": "0212",
+  "Gm": "0331",
 }
 
 const showPrefs = ref(false)

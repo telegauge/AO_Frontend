@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run Actuator Orchestra",
+      "name": "Run Actuator Orchestra FrontEnd",
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/node_modules/.bin/quasar",
