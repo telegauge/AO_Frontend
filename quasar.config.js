@@ -1,7 +1,8 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
-import { defineConfig } from '#q-app/wrappers'
+import { defineConfig } from "#q-app/wrappers"
+import path from "path"
 
 export default defineConfig((/* ctx */) => {
 	return {
@@ -14,30 +15,30 @@ export default defineConfig((/* ctx */) => {
 		boot: [],
 
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
-		css: ['app.scss'],
+		css: ["app.scss"],
 
 		// https://github.com/quasarframework/quasar/tree/dev/extras
 		extras: [
 			// 'ionicons-v4',
-			'mdi-v7',
+			"mdi-v7",
 			// 'fontawesome-v6',
 			// 'eva-icons',
 			// 'themify',
 			// 'line-awesome',
 			// 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
 
-			'roboto-font', // optional, you are not bound to it
-			'material-icons', // optional, you are not bound to it
+			"roboto-font", // optional, you are not bound to it
+			"material-icons", // optional, you are not bound to it
 		],
 
 		// Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
 		build: {
 			target: {
-				browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
-				node: 'node20',
+				browser: ["es2022", "firefox115", "chrome115", "safari14"],
+				node: "node20",
 			},
 
-			vueRouterMode: 'hash', // available values: 'hash', 'history'
+			vueRouterMode: "hash", // available values: 'hash', 'history'
 			// vueRouterBase,
 			// vueDevtools,
 			// vueOptionsAPI: false,
@@ -56,7 +57,11 @@ export default defineConfig((/* ctx */) => {
 			// extendViteConf (viteConf) {},
 			// viteVuePluginOptions: {},
 
-			vitePlugins: [['vite-plugin-checker', { server: false }]],
+			vitePlugins: [["vite-plugin-checker", { server: false }]],
+
+			alias: {
+				"@": path.resolve(__dirname, "./src"),
+			},
 		},
 
 		// Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#devserver
@@ -85,17 +90,14 @@ export default defineConfig((/* ctx */) => {
 
 			iconMapFn(iconName) {
 				const musicalIcons = {
-					guitar:
-						'M16 2h2v8h-2zM15 8h4v2h-4zM12 21c-3.87 0-7-2.24-7-5s3.13-5 7-5 7 2.24 7 5-3.13 5-7 5zm0-8c-3.31 0-6 1.79-6 4s2.69 4 6 4 6-1.79 6-4-2.69-4-6-4zm0 2a2 2 0 100 4 2 2 0 000-4z',
+					guitar: "M16 2h2v8h-2zM15 8h4v2h-4zM12 21c-3.87 0-7-2.24-7-5s3.13-5 7-5 7 2.24 7 5-3.13 5-7 5zm0-8c-3.31 0-6 1.79-6 4s2.69 4 6 4 6-1.79 6-4-2.69-4-6-4zm0 2a2 2 0 100 4 2 2 0 000-4z",
 					ukulele:
-						'M17 3h1.5v6H17zM16.5 8h3v1.5h-3zM12 20c-2.76 0-5-1.34-5-3s2.24-3 5-3 5 1.34 5 3-2.24 3-5 3zm0-4a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z',
-					piano:
-						'M4 8h16v8a2 2 0 01-2 2H6a2 2 0 01-2-2V8zm2 2v6h2v-6H6zm4 0v6h2v-6h-2zm4 0v6h2v-6h-2zm4 0v6h2v-6h-2z',
-					drum: 'M12 8c4.42 0 8 1.34 8 3s-3.58 3-8 3-8-1.34-8-3 3.58-3 8-3zm-8 3v5c0 1.66 3.58 3 8 3s8-1.34 8-3v-5c0 1.66-3.58 3-8 3s-8-1.34-8-3z',
-					violin:
-						'M16 3h2v6h-2zM10 18c-2.76 0-5-0.9-5-2s2.24-2 5-2 5 0.9 5 2-2.24 2-5 2zm-1-6h2v8h-2z',
+						"M17 3h1.5v6H17zM16.5 8h3v1.5h-3zM12 20c-2.76 0-5-1.34-5-3s2.24-3 5-3 5 1.34 5 3-2.24 3-5 3zm0-4a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z",
+					piano: "M4 8h16v8a2 2 0 01-2 2H6a2 2 0 01-2-2V8zm2 2v6h2v-6H6zm4 0v6h2v-6h-2zm4 0v6h2v-6h-2zm4 0v6h2v-6h-2z",
+					drum: "M12 8c4.42 0 8 1.34 8 3s-3.58 3-8 3-8-1.34-8-3 3.58-3 8-3zm-8 3v5c0 1.66 3.58 3 8 3s8-1.34 8-3v-5c0 1.66-3.58 3-8 3s-8-1.34-8-3z",
+					violin: "M16 3h2v6h-2zM10 18c-2.76 0-5-0.9-5-2s2.24-2 5-2 5 0.9 5 2-2.24 2-5 2zm-1-6h2v8h-2z",
 				}
-				return musicalIcons[iconName] || ''
+				return musicalIcons[iconName] || ""
 			},
 		},
 
@@ -122,7 +124,7 @@ export default defineConfig((/* ctx */) => {
 			// (gets superseded if process.env.PORT is specified at runtime)
 
 			middlewares: [
-				'render', // keep this as last one
+				"render", // keep this as last one
 			],
 
 			// extendPackageJson (json) {},
@@ -142,7 +144,7 @@ export default defineConfig((/* ctx */) => {
 
 		// https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
 		pwa: {
-			workboxMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
+			workboxMode: "GenerateSW", // 'GenerateSW' or 'InjectManifest'
 			// swFilename: 'sw.js',
 			// manifestFilename: 'manifest.json',
 			// extendManifestJson (json) {},
@@ -171,12 +173,12 @@ export default defineConfig((/* ctx */) => {
 			// extendPackageJson (json) {},
 
 			// Electron preload scripts (if any) from /src-electron, WITHOUT file extension
-			preloadScripts: ['electron-preload'],
+			preloadScripts: ["electron-preload"],
 
 			// specify the debugging port to use for the Electron app when running in development mode
 			inspectPort: 5858,
 
-			bundler: 'packager', // 'packager' or 'builder'
+			bundler: "packager", // 'packager' or 'builder'
 
 			packager: {
 				// https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
@@ -192,7 +194,7 @@ export default defineConfig((/* ctx */) => {
 			builder: {
 				// https://www.electron.build/configuration/configuration
 
-				appId: 'aofrontend',
+				appId: "aofrontend",
 			},
 		},
 
