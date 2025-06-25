@@ -110,6 +110,7 @@
 <script setup>
 import { computed, watch, ref, onMounted, onUnmounted } from 'vue'
 import { useInstrument } from 'src/pages/Instruments/useInstrument.js'
+import { useStorage } from "@vueuse/core"
 
 const props = defineProps({
 	id: {
@@ -129,8 +130,8 @@ const frets = ref(0) // overwritten by REST
 
 const strum_delay = ref(10)
 
-const strum_chord = ref(true)
-const strum_fret = ref(true)
+const strum_chord = useStorage("strum_chord", true)
+const strum_fret = useStorage("strum_fret", true)
 
 const state = ref("0000") // e.g., "4322" for 4 strings
 
@@ -231,34 +232,152 @@ const setChord = (chord) => {
 }
 
 const notes = ["C", "D", "E", "F", "G", "A", "B"]
-const variations = [{ label: "Major", value: "" }, { label: "Minor", value: "m" }, { label: "7", value: "7" }, { label: "Flat", value: "b" }, { label: "Major 7", value: "maj7" }, { label: "9", value: "9" }]
+const variations = [
+  { label: "Major", value: "" },
+  { label: "Minor", value: "m" },
+  { label: "7", value: "7" },
+  { label: "Major 7", value: "maj7" },
+  { label: "Minor 7", value: "m7" },
+  { label: "6", value: "6" },
+  { label: "9", value: "9" },
+  { label: "Diminished", value: "dim" },
+  { label: "Augmented", value: "aug" },
+  { label: "Sus2", value: "sus2" },
+  { label: "Sus4", value: "sus4" },
+  { label: "Add9", value: "add9" },
+  { label: "m7b5", value: "m7b5" },
+  { label: "dim7", value: "dim7" }
+]
 
+// I started it with about 20 chords, and had AI do it's thang.
 const chords = {
+  // C family
+  "C": "0003",
+  "Cm": "0333",
+  "C7": "0001",
+  "Cmaj7": "0002",
+  "Cm7": "3333",
+  "C6": "0000",
+  "C9": "0201",
+  "Cdim": "2323",
+  "Caug": "1003",
+  "Csus2": "0023",
+  "Csus4": "0013",
+  "Cadd9": "0005",
+  "Cm7b5": "3334",
+  "Cdim7": "2323",
+
+  // D family
+  "D": "2220",
+  "Dm": "2210",
+  "D7": "2020",
+  "Dmaj7": "2224",
+  "Dm7": "2213",
+  "D6": "2022",
+  "D9": "2223",
+  "Ddim": "1212",
+  "Daug": "3221",
+  "Dsus2": "2200",
+  "Dsus4": "2230",
+  "Dadd9": "2202",
+  "Dm7b5": "2212",
+  "Ddim7": "1212",
+
+  // E family
+  "E": "1402",
+  "Em": "0432",
+  "E7": "1202",
+  "Emaj7": "1302",
+  "Em7": "0202",
+  "E6": "1202",
+  "E9": "1022",
+  "Edim": "2323",
+  "Eaug": "1403",
+  "Esus2": "4422",
+  "Esus4": "4400",
+  "Eadd9": "1400",
+  "Em7b5": "0323",
+  "Edim7": "2323",
+
+  // F family
+  "F": "2010",
+  "Fm": "1013",
+  "F7": "2310",
+  "Fmaj7": "2413",
+  "Fm7": "1313",
+  "F6": "2012",
+  "F9": "0010",
+  "Fdim": "1210",
+  "Faug": "2110",
+  "Fsus2": "3013",
+  "Fsus4": "3311",
+  "Fadd9": "0010",
+  "Fm7b5": "1312",
+  "Fdim7": "1212",
+
+  // G family
+  "G": "0232",
+  "Gm": "0231",
+  "G7": "0212",
+  "Gmaj7": "0222",
+  "Gm7": "0211",
+  "G6": "0202",
+  "G9": "0210",
+  "Gdim": "2320",
+  "Gaug": "0332",
+  "Gsus2": "0230",
+  "Gsus4": "0233",
+  "Gadd9": "0032",
+  "Gm7b5": "0211",
+  "Gdim7": "2323",
+
+  // A family
   "A": "2100",
   "Am": "2000",
   "A7": "0100",
+  "Amaj7": "1100",
+  "Am7": "0000",
+  "A6": "2100",
+  "A9": "2020",
+  "Adim": "2323",
+  "Aaug": "2110",
+  "Asus2": "2000",
+  "Asus4": "2200",
+  "Aadd9": "2002",
+  "Am7b5": "2333",
+  "Adim7": "1212",
+
+  // B family
   "B": "4322",
-  "Bb": "3211",
   "Bm": "4222",
-  "C": "0003",
-  "Cm": "0333",
-  "C7": "0210",
-  "C9": "0232",
-  "Cmaj7": "0200",
-  "D": "2220",
-  "D7": "2120",
-  "Db": "1110",
-  "Dm": "2210",
-  "D9": "2222",
-  "E": "1002",
-  "Em": "0000",
-  "E7": "1202",
-  "Eb": "1343",
-  "F": "2010",
-  "Fm": "2110",
-  "G": "0232",
-  "G7": "0212",
-  "Gm": "0331",
+  "B7": "4320",
+  "Bmaj7": "3322",
+  "Bm7": "2222",
+  "B6": "4324",
+  "B9": "2224",
+  "Bdim": "1212",
+  "Baug": "4332",
+  "Bsus2": "4422",
+  "Bsus4": "4420",
+  "Badd9": "4324",
+  "Bm7b5": "2222",
+  "Bdim7": "1212",
+
+  // Bb family
+  "Bb": "3211",
+  "Bbm": "3111",
+  "Bb7": "1211",
+  "Bbmaj7": "3210",
+  "Bbm7": "1111",
+  "Bb6": "0211",
+  "Bb9": "0111",
+  "Bbdim": "0101",
+  "Bbaug": "3221",
+  "Bbsus2": "3011",
+  "Bbsus4": "3311",
+  "Bbadd9": "3013",
+  "Bbm7b5": "1112",
+  "Bbdim7": "0101",
 }
 
 const showPrefs = ref(false)

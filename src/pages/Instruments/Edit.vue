@@ -1,11 +1,14 @@
 <template lang="pug">
 q-page.q-pa-md
   h2 {{ isNew ? 'Add Instrument' : 'Edit Instrument' }}
-  q-form(v-if="instrument")
-    q-btn-toggle.q-my-sm(spread v-model="instrument.type" :options="Defs" label="Type" outlined)
-    q-input.q-my-sm(v-model="instrument.name" filled label="Name" outlined)
-    q-input.q-my-sm(v-model="instrument.ip" filled   label="IP Address" outlined)
-    q-input.q-my-sm(v-model="instrument.config" filled label="Config" outlined type="textarea")
+  .row.q-col-gutter-md(v-if="instrument")
+    .col-6: q-input(v-model="instrument.name" filled label="Name" outlined)
+    .col-6: q-input(v-model="instrument.ip" filled   label="IP Address" outlined)
+    .text-h6 Type
+    .col-12: q-btn-toggle(spread v-model="instrument.type" :options="Defs" label="Type" outlined)
+
+    .col-12: component(:is="views[instrument.type]" :config="instrument.config")
+
     q-page-sticky(position="bottom-right" :offset="[18, 18]")
       q-btn(label="Delete" color="negative" @click="onDelete")
     q-page-sticky(position="bottom-left" :offset="[18, 18]")
@@ -13,15 +16,19 @@ q-page.q-pa-md
   div(v-else)
     p Instrument not found
 
-  pre {{ instrument }}
+  pre {{ instrument.config }}
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, defineAsyncComponent } from 'vue'
 import { useInstrumentsStore, Defs } from 'stores/instruments'
 import { useRouter } from 'vue-router'
 
 import { useInstrument } from './useInstrument.js'
+
+const views = {
+	guitar: defineAsyncComponent(() => import('./forms/guitar.vue')),
+}
 
 const props = defineProps({
 	id: {
