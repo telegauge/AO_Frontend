@@ -86,7 +86,7 @@ export default defineConfig((/* ctx */) => {
 			// directives: [],
 
 			// Quasar plugins
-			plugins: [],
+			plugins: ["Notify"],
 
 			iconMapFn(iconName) {
 				const musicalIcons = {

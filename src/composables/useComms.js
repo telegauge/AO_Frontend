@@ -92,7 +92,12 @@ export function useComms(instrument) {
 			})
 			.then((data) => {
 				console.log("[REST] Command sent:", cmd, "Response:", data)
-				if (method === "GET") return JSON.parse(data)
+				try {
+					const json = JSON.parse(data)
+					return json
+				} catch (e) {
+					return data
+				}
 			})
 			.catch((error) => {
 				rest_online.value = false

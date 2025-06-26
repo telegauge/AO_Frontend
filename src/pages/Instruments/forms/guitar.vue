@@ -1,18 +1,9 @@
 <template lang="pug">
 .row.q-col-gutter-md
 	.col-12.col-md-6
-		.text-h6 Strings
+		.text-h6 Number of Strings
+		q-btn-toggle(v-model="config.string_count" spread, :options="count_opts")
 		.row.q-col-gutter-sm
-			.col-12
-				q-input(
-					v-model.number="config.string_count"
-					type="number"
-					label="Number of Strings"
-					filled
-					outlined,
-					:max="12",
-					:min="1"
-				)
 			.col-12
 				.row.q-col-gutter-sm.bg-secondary.q-my-md
 					.col-1
@@ -60,18 +51,9 @@
 						)
 
 	.col-12.col-md-6
-		.text-h6 Frets
+		.text-h6 Number of Frets
+		q-btn-toggle(v-model="config.fret_count" spread, :options="count_opts")
 		.row.q-col-gutter-sm
-			.col-12
-				q-input(
-					v-model.number="config.fret_count"
-					type="number"
-					label="Number of Frets"
-					filled
-					outlined,
-					:max="12",
-					:min="1"
-				)
 			.col-12
 				.row.q-col-gutter-sm.bg-secondary.q-my-md
 					.col-1
@@ -107,8 +89,6 @@
 						//- q-checkbox(v-model="config.frets[fret - 1].pos[2]")
 						//- q-checkbox(v-model="config.frets[fret - 1].pos[3]")
 						//- q-checkbox(v-model="auto_pluck" checked-icon="mdi-cancel" unchecked-icon="mdi-cancel", :val="0")
-
-pre {{ auto_pluck }}
 </template>
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from "vue"
@@ -161,6 +141,8 @@ watch(
 					swing_right: 30,
 					home_left: 2,
 					home_right: 2,
+					i2c: "0x40",
+					pin: 0,
 				}
 		}
 	},
@@ -173,8 +155,36 @@ watch(
 		// props.config.frets = []
 		if (!props.config.frets) props.config.frets = []
 		for (var f = 0; f < count; f++) {
-			if (!props.config.frets[f]) props.config.frets[f] = { label: "Fret " + (f + 1), pos: [0, 60, 90, 120] }
+			if (!props.config.frets[f])
+				props.config.frets[f] = {
+					label: "Fret " + (f + 1),
+					pos: [0, 60, 90, 120],
+					i2c_left: "0x40",
+					pin_left: 0,
+					i2c_right: "0x40",
+					pin_right: 1,
+				}
 		}
 	},
 )
+
+const count_opts = [
+	{ label: "1", value: 1 },
+	{ label: "2", value: 2 },
+	{ label: "3", value: 3 },
+	{ label: "4", value: 4 },
+	{ label: "5", value: 5 },
+	{ label: "6", value: 6 },
+	{ label: "7", value: 7 },
+	{ label: "8", value: 8 },
+	{ label: "9", value: 9 },
+	{ label: "10", value: 10 },
+	{ label: "11", value: 11 },
+	{ label: "12", value: 12 },
+]
+
+const cmd_opts = [
+	{ label: "Pluck", value: "pluck" },
+	{ label: "Strum", value: "strum" },
+]
 </script>
