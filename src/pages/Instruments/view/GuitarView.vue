@@ -28,9 +28,13 @@
 						td(v-for="s in instrument.config.string_count", :key="s")
 							q-btn.fit.mouseoverflash(label="V" color="secondary" @click="Pluck(s)")
 					tr.bg-grey-2.desktop-only
-						th.text-right Strum
+						th.text-right Swipe
 						td(v-for="s in instrument.config.string_count", :key="s")
 							q-btn.fit(label=">" color="secondary" @mouseenter="FlashEl" @mouseleave="Pluck(s)")
+					tr.bg-grey-2.desktop-only
+						th.text-right Strum
+						td(colspan="4")
+							q-btn.fit(label="strum" color="secondary" @click="Strum")
 
 	.col-md-6.col-12: q-card
 		q-card-section
@@ -224,6 +228,10 @@ const Pluck = (string) => {
 	const config = instrument.value.config.strings[string - 1]
 	const cal = [config.swing_left, config.home_left, config.home_right, config.swing_right]
 	sendCmd("POST", "pluck", { string: string, calibrate: cal.join(",") })
+}
+
+const Strum = () => {
+	sendCmd("POST", "strum", {})
 }
 
 const setChord = (chord) => {

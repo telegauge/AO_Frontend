@@ -1,0 +1,19 @@
+<template lang="pug">
+q-page(padding)
+	q-tabs
+		q-route-tab(name="view" label="View", :to="`/instrument/${id}`")
+		q-route-tab(name="edit" label="Edit", :to="`/instrument/${id}/edit`")
+	router-view
+</template>
+<script setup>
+import { useRoute } from "vue-router"
+
+const route = useRoute()
+
+const props = defineProps({
+	id: {
+		type: String,
+		required: true,
+	},
+})
+</script>

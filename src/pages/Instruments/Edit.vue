@@ -1,6 +1,6 @@
 <template lang="pug">
 q-page(padding)
-	h2 {{ isNew ? "Add Instrument" : "Edit Instrument" }}
+	//- h2 {{ isNew ? "Add Instrument" : "Edit Instrument" }}
 	div(v-if="instrument")
 		.row.q-col-gutter-md
 			.col-12.col-md-4
@@ -75,7 +75,7 @@ import { Notify } from "quasar"
 import Raw from "@/components/Raw.vue"
 
 const views = {
-	guitar: defineAsyncComponent(() => import("./forms/guitar.vue")),
+	guitar: defineAsyncComponent(() => import("./edit/GuitarEdit.vue")),
 }
 
 const props = defineProps({

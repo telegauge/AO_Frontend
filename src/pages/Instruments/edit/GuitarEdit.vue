@@ -71,10 +71,30 @@
 						PinPicker(v-model:i2c="config.frets[fret - 1].i2c_left" v-model:pin="config.frets[fret - 1].pin_left")
 					.col-8
 						.row.q-col-gutter-sm
-							.col-3: q-slider(v-model="config.frets[fret - 1].pos[0]" selection-color="transparent", :max="200", :min="-20")
-							.col-3: q-slider(v-model="config.frets[fret - 1].pos[1]" selection-color="transparent", :max="200", :min="-20")
-							.col-3: q-slider(v-model="config.frets[fret - 1].pos[2]" selection-color="transparent", :max="200", :min="-20")
-							.col-3: q-slider(v-model="config.frets[fret - 1].pos[3]" selection-color="transparent", :max="200", :min="-20")
+							.col-3: q-slider(
+								v-model="config.frets[fret - 1].pos[0]"
+								selection-color="transparent",
+								:max="0 + 30",
+								:min="0 - 30"
+							)
+							.col-3: q-slider(
+								v-model="config.frets[fret - 1].pos[1]"
+								selection-color="transparent",
+								:max="60 + 30",
+								:min="60 - 30"
+							)
+							.col-3: q-slider(
+								v-model="config.frets[fret - 1].pos[2]"
+								selection-color="transparent",
+								:max="90 + 30",
+								:min="90 - 30"
+							)
+							.col-3: q-slider(
+								v-model="config.frets[fret - 1].pos[3]"
+								selection-color="transparent",
+								:max="120 + 30",
+								:min="120 - 30"
+							)
 					.col-shrink
 						PinPicker(v-model:i2c="config.frets[fret - 1].i2c_right" v-model:pin="config.frets[fret - 1].pin_right")
 					.col
