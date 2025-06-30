@@ -1,67 +1,65 @@
 <template lang="pug">
-#GUITAR
-	.row.justify-center.q-my-lg
-		.col-12.col-xl-4
-			.row.justify-center.q-my-lg
-				.col-shrink
-					//- pre {{ state }}
-					q-markup-table
-						thead
-							tr
-								th
-									q-checkbox(
-										v-model="strum_fret"
-										color="primary"
-										checked-icon="mdi-guitar-pick"
-										unchecked-icon="mdi-guitar-pick-outline"
-									)
-										q-tooltip Auto-pluck when setting frets
-								th(v-for="s in strings", :key="s") {{ s }}
-						tbody(v-if="instrument.state?.neck")
-							tr(v-for="f in frets", :key="f")
-								th.text-right Fret {{ f }}
-								td(v-for="s in strings", :key="s")
-									q-btn.fit(:label="getFretAt(f, s) ? '⏺' : ''" color="primary" @click="toggleFret(f, s)")
+#GUITAR.row.q-col-gutter-md
+	.col-md-6.col-12: q-card
+		q-card-section
+			q-toolbar
+				q-toolbar-title Fretboard
+		q-card-section
+			q-markup-table(dense)
+				thead
+					tr
+						th
+							q-checkbox(
+								v-model="strum_fret"
+								color="primary"
+								checked-icon="mdi-guitar-pick"
+								unchecked-icon="mdi-guitar-pick-outline"
+							)
+								q-tooltip Auto-pluck when setting frets
+						th(v-for="s in instrument.config.string_count", :key="s") {{ s }}
+				tbody(v-if="true")
+					tr(v-for="f in instrument.config.fret_count", :key="f")
+						th.text-right Fret {{ f }}
+						td(v-for="s in instrument.config.string_count", :key="s")
+							q-btn.fit(:label="getFretAt(f, s) ? '⏺' : '|'" color="primary" @click="toggleFret(f, s)")
 
-							tr.bg-grey-2
-								th.text-right Pluck
-								td(v-for="s in strings", :key="s")
-									q-btn.mouseoverflash(label="V" color="primary" round @click="Pluck(s)")
-							tr.bg-grey-2.desktop-only
-								th.text-right Strum
-								td(v-for="s in strings", :key="s")
-									q-btn(label=">" color="primary" round @mouseenter="FlashEl" @mouseleave="Pluck(s)")
-							tr.bg-grey-2.desktop-only
-								th.text-right Strum
-								td(v-for="s in strings", :key="s")
-									q-btn(label=">" color="primary" round @mouseenter="FlashEl" @mouseleave="Pluck(s)")
+					tr.bg-grey-2
+						th.text-right Pluck
+						td(v-for="s in instrument.config.string_count", :key="s")
+							q-btn.fit.mouseoverflash(label="V" color="secondary" @click="Pluck(s)")
+					tr.bg-grey-2.desktop-only
+						th.text-right Strum
+						td(v-for="s in instrument.config.string_count", :key="s")
+							q-btn.fit(label=">" color="secondary" @mouseenter="FlashEl" @mouseleave="Pluck(s)")
 
-		.col-12.col-xl-8
-			.row.justify-center.q-my-lg
-				.col-shrink
-					q-markup-table
-						thead
-							tr
-								th
-									q-checkbox(
-										v-model="strum_chord"
-										color="primary"
-										checked-icon="mdi-guitar-pick"
-										unchecked-icon="mdi-guitar-pick-outline"
-									)
-										q-tooltip Strum when setting chords
-								th(v-for="note in notes", :key="note") {{ note }}
-						tbody
-							tr(v-for="variation in variations", :key="variation")
-								th {{ variation.label }}
-								td(v-for="note in notes", :key="note")
-									q-btn.fit(
-										:label="note + variation.value"
-										color="primary"
-										no-caps
-										@click="setChord(note + variation.value)",
-										:disabled="!chords[note + variation.value]"
-									)
+	.col-md-6.col-12: q-card
+		q-card-section
+			q-toolbar
+				q-toolbar-title Chords
+		q-card-section
+			q-markup-table(dense)
+				thead
+					tr
+						th
+							q-checkbox(
+								v-model="strum_chord"
+								color="primary"
+								checked-icon="mdi-guitar-pick"
+								unchecked-icon="mdi-guitar-pick-outline"
+							)
+								q-tooltip Strum when setting chords
+						th(v-for="note in notes", :key="note") {{ note }}
+				tbody
+					tr(v-for="v in instrument.config.fret_count + 2", :key="v")
+						th {{ variations[v - 1].label }}
+						td(v-for="note in notes", :key="note")
+							q-btn.fit(
+								:label="note + variations[v - 1].value"
+								color="primary"
+								no-caps
+								@click="setChord(note + variations[v].value)",
+								:disabled="!chords[note + variations[v].value]"
+							)
 
 	q-page-sticky(position="bottom-right", :offset="[18, 18]")
 		.row
@@ -133,9 +131,6 @@ const props = defineProps({
 
 const { instrument, sendCmd, sendRestCmd, connect, disconnect, ws_online, rest_online } = useInstrument(props.id)
 
-const strings = ref(4) // overwritten by REST
-const frets = ref(0) // overwritten by REST
-
 const strum_delay = ref(10)
 
 const strum_chord = useStorage("strum_chord", true)
@@ -148,12 +143,8 @@ const batt_percent = ref(0)
 const timer = ref(null)
 
 onMounted(async () => {
+	console.log("GuitarView mounted", instrument.value)
 	connect()
-	const info = await sendRestCmd("GET", "info")
-	if (info) {
-		strings.value = info.strings
-		frets.value = info.fretters
-	}
 	timer.value = setInterval(updateBattery, 120000)
 	updateBattery()
 })
@@ -209,14 +200,16 @@ const updateBattery = async () => {
 
 const getFretAt = (fret, string) => {
 	// Returns true if the string is pressed at this fret
+	// console.log("getFretAt", fret, string, state.value)
 	return parseInt(state.value[string - 1] || 0) === fret
 }
 const setFretAt = (fret, string, value) => {
 	// If value is true, set this string to this fret, else set to 0 (open)
+	console.log("setFretAt", fret, string, value)
 	let arr = state.value.split("")
-	arr[string] = value ? fret.toString() : "0"
+	arr[string - 1] = value ? fret.toString() : "0"
 	state.value = arr.join("")
-	sendCmd("POST", "fret", { pressed: state.value })
+	sendCmd("POST", "fret", { fret, pressed: state.value })
 }
 const toggleFret = (fret, string) => {
 	console.log("toggleFret", fret, string)
