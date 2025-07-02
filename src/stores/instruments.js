@@ -77,7 +77,7 @@ export const useInstrumentsStore = defineStore("instruments", {
 			return state.instruments.find((inst) => inst.id == unref(id))
 		},
 		getDefById: (state) => (id) => {
-			return Defs.find((type) => type.value === state.instruments.find((inst) => inst.id == id).type)
+			return Defs.find((type) => type.value === state.instruments.find((inst) => inst.id == unref(id)).type)
 		},
 	},
 	actions: {

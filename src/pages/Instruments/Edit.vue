@@ -102,9 +102,9 @@ function onDelete() {
 	router.push("/instruments")
 }
 
-const config_working = ref(false)
+const download_working = ref(false)
 async function onSendConfig() {
-	config_working.value = true
+	download_working.value = true
 	console.log("send config", instrument.value)
 	var result = await sendCmd("POST", "save_config", { config: JSON.stringify(instrument.value) })
 	console.log(">>", result)
@@ -112,13 +112,14 @@ async function onSendConfig() {
 		message: result.result,
 		color: result.status ? "positive" : "negative",
 	})
-	config_working.value = false
+	download_working.value = false
 }
 
+const upload_working = ref(false)
 async function onUploadConfig() {
-	config_working.value = true
+	upload_working.value = true
 	console.log("upload config", instrument.value)
-	var result = await sendCmd("GET", "load_config", {})
+	var result = await sendCmd("GET", "get_config", {})
 	console.log(">>", result)
 	if (result) {
 		var config = JSON.parse(JSON.stringify(result))
@@ -127,6 +128,6 @@ async function onUploadConfig() {
 		Object.assign(instrument.value, config, { deep: true })
 		// instrument.value.config = config
 	}
-	config_working.value = false
+	upload_working.value = false
 }
 </script>

@@ -38,7 +38,7 @@ const GetI2C = async () => {
 	i2c.value = await sendCmd("GET", "scani2c")
 }
 
-const def = computed(() => store.getDefById(props.id))
+const def = computed(() => store.getDefById(instrument_id.value))
 
 const i2c_lookup = {
 	"0x3C": "OLED",
