@@ -3,6 +3,7 @@ q-page(padding)
 	q-tabs
 		q-route-tab(name="view" label="View", :to="`/instrument/${id}`")
 		q-route-tab(name="edit" label="Edit", :to="`/instrument/${id}/edit`")
+		q-route-tab(name="api" label="API", :to="`/instrument/${id}/api`")
 	router-view
 </template>
 <script setup>

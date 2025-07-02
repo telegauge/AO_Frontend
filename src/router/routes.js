@@ -17,6 +17,12 @@ const routes = [
 						component: () => import("pages/Instruments/Edit.vue"),
 					},
 					{
+						path: ":id/api",
+						name: "instrument-api",
+						props: true,
+						component: () => import("pages/Instruments/API.vue"),
+					},
+					{
 						path: ":id",
 						name: "instrument-view",
 						props: true,
