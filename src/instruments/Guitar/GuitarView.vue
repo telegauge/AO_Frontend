@@ -3,7 +3,7 @@
 	.col-md-6.col-12: q-card
 		q-card-section
 			q-toolbar
-				q-toolbar-title Fretboard
+				q-toolbar-title {{ instrument.name }}
 		q-card-section
 			q-markup-table(dense)
 				thead
@@ -81,8 +81,8 @@
 				:icon="batt_status.icon"
 			)
 
-	q-page-sticky(position="bottom-left", :offset="[18, 18]")
-		q-btn(color="primary" flat icon="mdi-cog" round @click="showPrefs = true")
+	//- q-page-sticky(position="bottom-left", :offset="[18, 18]")
+	//- 	q-btn(color="primary" flat icon="mdi-cog" round @click="showPrefs = true")
 
 	q-dialog(v-model="showPrefs")
 		q-card(style="min-width: 350px")
@@ -102,19 +102,6 @@
 				)
 			q-card-actions(align="right")
 				q-btn(label="Close" color="primary" flat v-close-popup)
-
-	//- q-btn-group.q-ma-lg
-	//-   q-btn(v-for="cmd in def.cmd" :key="cmd" :label="cmd" @click="sendCmd(cmd)")
-
-	//- .text-bold Puck-o-regular (clickxx)
-	//- .row.q-ma-lg
-	//-   .col-shrink(v-for="i in 4" :key="i")
-	//-     q-btn(:label="i" @click="sendCmd('pluck',i-1)").mouseoverflash
-
-	//- .text-bold Puck-o-matic (strum)
-	//- .row.q-ma-lg
-	//-   .col-shrink(v-for="i in 4" :key="i")
-	//-     q-btn(:label="i" @mouseleave="sendCmd('pluck',i-1)").mouseoverflash
 </template>
 
 <script setup>
@@ -133,7 +120,8 @@ const props = defineProps({
 	},
 })
 
-const { instrument, sendCmd, sendRestCmd, connect, disconnect, ws_online, rest_online } = useInstrument(props.id)
+const instrument_id = computed(() => Number(props.id))
+const { instrument, sendCmd, sendRestCmd, connect, disconnect, ws_online, rest_online } = useInstrument(instrument_id)
 
 const strum_delay = ref(10)
 

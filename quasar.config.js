@@ -4,6 +4,8 @@
 import { defineConfig } from "#q-app/wrappers"
 import path from "path"
 
+import AutoImport from "unplugin-auto-import/vite"
+
 export default defineConfig((/* ctx */) => {
 	return {
 		// https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
@@ -57,7 +59,12 @@ export default defineConfig((/* ctx */) => {
 			// extendViteConf (viteConf) {},
 			// viteVuePluginOptions: {},
 
-			vitePlugins: [["vite-plugin-checker", { server: false }]],
+			vitePlugins: [
+				["vite-plugin-checker", { server: false }],
+				AutoImport({
+					imports: ["vue", "vue-router", "pinia"],
+				}),
+			],
 
 			alias: {
 				"@": path.resolve(__dirname, "./src"),

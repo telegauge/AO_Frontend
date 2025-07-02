@@ -44,9 +44,9 @@ q-page(padding)
 			.col-12
 				component(:config="instrument.config", :instrument_id="id", :is="views[instrument.type]")
 
-			.col-12
+			.col-8
 				q-btn.fit(
-					:label="`Download Config to ${instrument.name}`"
+					:label="`Download Config to '${instrument.ip}'`"
 					color="primary"
 					icon="mdi-playlist-music"
 					rounded
@@ -54,10 +54,18 @@ q-page(padding)
 					@click="onSendConfig",
 					:loading="config_working"
 				)
+			.col-4
+				q-btn.fit(
+					:label="`Upload from '${instrument.ip}'`"
+					color="secondary"
+					icon="mdi-upload"
+					rounded
+					size="lg"
+					@click="onUploadConfig",
+					:loading="config_working"
+				)
 		q-page-sticky(position="bottom-right", :offset="[18, 18]")
 			q-btn(label="Delete" color="negative" @click="onDelete")
-		q-page-sticky(position="bottom-left", :offset="[18, 18]")
-			q-btn(label="<<" color="primary" round, :to="`/instruments/${props.id}`")
 	div(v-else)
 		p Instrument not found
 
@@ -75,7 +83,7 @@ import { Notify } from "quasar"
 import Raw from "@/components/Raw.vue"
 
 const views = {
-	guitar: defineAsyncComponent(() => import("./edit/GuitarEdit.vue")),
+	guitar: defineAsyncComponent(() => import("../../instruments/Guitar/GuitarEdit.vue")),
 }
 
 const props = defineProps({
@@ -91,19 +99,34 @@ const { instrument, sendCmd } = useInstrument(id)
 
 function onDelete() {
 	store.removeInstrument(id.value)
-	router.push({ name: "instruments" })
+	router.push("/instruments")
 }
 
 const config_working = ref(false)
 async function onSendConfig() {
 	config_working.value = true
 	console.log("send config", instrument.value)
-	var result = await sendCmd("POST", "config", { config: JSON.stringify(instrument.value) })
+	var result = await sendCmd("POST", "save_config", { config: JSON.stringify(instrument.value) })
 	console.log(">>", result)
 	Notify.create({
 		message: result.result,
 		color: result.status ? "positive" : "negative",
 	})
+	config_working.value = false
+}
+
+async function onUploadConfig() {
+	config_working.value = true
+	console.log("upload config", instrument.value)
+	var result = await sendCmd("GET", "load_config", {})
+	console.log(">>", result)
+	if (result) {
+		var config = JSON.parse(JSON.stringify(result))
+		delete config.id
+		delete config.name
+		Object.assign(instrument.value, config, { deep: true })
+		// instrument.value.config = config
+	}
 	config_working.value = false
 }
 </script>

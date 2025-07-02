@@ -111,9 +111,9 @@
 						//- q-checkbox(v-model="auto_pluck" checked-icon="mdi-cancel" unchecked-icon="mdi-cancel", :val="0")
 </template>
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from "vue"
+import { ref, watch, onMounted, onUnmounted, onBeforeMount } from "vue"
 
-import { useInstrument } from "../useInstrument.js"
+import { useInstrument } from "../../pages/Instruments/useInstrument.js"
 
 import PinPicker from "@/components/PinPicker.vue"
 
@@ -148,23 +148,12 @@ function Beat() {
 
 const auto_strum = ref(0)
 
+onBeforeMount(VerifyConfig)
+
 watch(
 	() => props.config.string_count,
 	(count) => {
-		// props.config.strings = []
-		if (!props.config.strings) props.config.strings = []
-		for (var f = 0; f < count; f++) {
-			if (!props.config.strings[f])
-				props.config.strings[f] = {
-					label: "String " + (f + 1),
-					swing_left: 30,
-					swing_right: 30,
-					home_left: 2,
-					home_right: 2,
-					i2c: "0x40",
-					pin: 0,
-				}
-		}
+		VerifyConfig()
 	},
 )
 
@@ -172,21 +161,42 @@ watch(
 	() => props.config.fret_count,
 	(count) => {
 		console.log("fret count", count)
-		// props.config.frets = []
-		if (!props.config.frets) props.config.frets = []
-		for (var f = 0; f < count; f++) {
-			if (!props.config.frets[f])
-				props.config.frets[f] = {
-					label: "Fret " + (f + 1),
-					pos: [0, 60, 90, 120],
-					i2c_left: "0x40",
-					pin_left: 0,
-					i2c_right: "0x40",
-					pin_right: 1,
-				}
-		}
+		VerifyConfig()
 	},
 )
+
+function VerifyConfig() {
+	var f
+	console.log("VerifyConfig", props.config)
+	const string_count = props.config.string_count || 1
+	if (!props.config.strings) props.config.strings = []
+	for (f = 0; f < string_count; f++) {
+		if (!props.config.strings[f])
+			props.config.strings[f] = {
+				label: "String " + (f + 1),
+				swing_left: 30,
+				swing_right: 30,
+				home_left: 2,
+				home_right: 2,
+				i2c: "0x40",
+				pin: 0,
+			}
+	}
+
+	const fret_count = props.config.fret_count || 1
+	if (!props.config.frets) props.config.frets = []
+	for (f = 0; f < fret_count; f++) {
+		if (!props.config.frets[f])
+			props.config.frets[f] = {
+				label: "Fret " + (f + 1),
+				pos: [0, 60, 90, 120],
+				i2c_left: "0x40",
+				pin_left: 0,
+				i2c_right: "0x40",
+				pin_right: 1,
+			}
+	}
+}
 
 const count_opts = [
 	{ label: "1", value: 1 },

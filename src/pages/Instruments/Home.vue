@@ -37,9 +37,9 @@ function AddInstrument(type) {
 		type: type,
 		ip: "",
 		cmds: [],
-		config: {},
+		config: Defs.find((d) => d.value == type)?.defaults || {},
 	})
 	store.instruments.push(instrument.value)
-	router.push({ path: `/instruments/${instrument.value.id}/edit` })
+	router.push({ path: `/instrument/${instrument.value.id}/edit` })
 }
 </script>

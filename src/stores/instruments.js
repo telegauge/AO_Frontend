@@ -8,6 +8,7 @@ export const Defs = [
 		value: "guitar",
 		icon: "guitar",
 		cmd: ["pluck", "strum", "chord"],
+		defaults: { string_count: 6, strings: [], fret_count: 4, frets: [] },
 	},
 	{
 		label: "Piano",
@@ -73,7 +74,12 @@ export const useInstrumentsStore = defineStore("instruments", {
 	}),
 	getters: {
 		getById: (state) => (id) => {
-			return state.instruments.find((inst) => inst.id == id)
+			console.log(
+				"getById",
+				unref(id),
+				state.instruments.find((inst) => inst.id == unref(id)),
+			)
+			return state.instruments.find((inst) => inst.id == unref(id))
 		},
 		getDefById: (state) => (id) => {
 			return Defs.find((type) => type.value === state.instruments.find((inst) => inst.id == id).type)
