@@ -48,7 +48,7 @@ q-page(padding)
 				q-btn.fit(
 					:label="`Download Config to '${instrument.ip}'`"
 					color="primary"
-					icon="mdi-playlist-music"
+					icon="mdi-download"
 					rounded
 					size="lg"
 					@click="onSendConfig",

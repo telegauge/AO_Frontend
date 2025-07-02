@@ -1,16 +1,53 @@
-import { ref, computed } from "vue"
+import { ref, computed, onBeforeMount } from "vue"
+
+// Module-level map to persist comms per instrument IP
+const commsMap = new Map()
 
 export function useComms(instrument) {
+	const ip = computed(() => instrument.value && instrument.value.ip)
+	if (!ip.value) return {}
+
+	// If comms for this IP already exists, return it
+	if (commsMap.has(ip.value)) {
+		return commsMap.get(ip.value)
+	}
+
 	const ws = ref(null)
 	const pendingRequests = new Map()
 
 	const ws_online = ref(false)
 	const rest_online = ref(false)
 
+	console.log("useComms", instrument.value.name)
+
+	onBeforeMount(() => {
+		connect()
+	})
+
+	const connect = () => {
+		console.log("connect", instrument.value.name)
+		connectWs()
+		sendRestCmd("GET", "info").then((info) => {
+			if (info) {
+				rest_online.value = true
+			}
+		})
+	}
+
+	const disconnect = () => {
+		if (ws.value) {
+			ws.value.close()
+		}
+		// Remove from commsMap so a new connection can be made if needed
+		if (ip.value && commsMap.has(ip.value)) {
+			commsMap.delete(ip.value)
+		}
+	}
+
 	const connectWs = () => {
 		if (!instrument.value || !instrument.value.ip) return
 		if (instrument.value.ip.length < 10) return
-
+		console.log("new websocket", instrument.value.name)
 		ws.value = new WebSocket(`ws://${instrument.value.ip}:81`)
 
 		ws.value.onopen = () => {
@@ -114,22 +151,7 @@ export function useComms(instrument) {
 		}
 	}
 
-	const connect = () => {
-		connectWs()
-		sendRestCmd("GET", "info").then((info) => {
-			if (info) {
-				rest_online.value = true
-			}
-		})
-	}
-
-	const disconnect = () => {
-		if (ws.value) {
-			ws.value.close()
-		}
-	}
-
-	return {
+	const commsObj = {
 		ws_online,
 		rest_online,
 		sendCmd,
@@ -138,4 +160,9 @@ export function useComms(instrument) {
 		connect,
 		disconnect,
 	}
+
+	// Store in map for persistence
+	commsMap.set(ip.value, commsObj)
+
+	return commsObj
 }

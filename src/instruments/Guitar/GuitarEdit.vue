@@ -167,7 +167,6 @@ watch(
 
 function VerifyConfig() {
 	var f
-	console.log("VerifyConfig", props.config)
 	const string_count = props.config.string_count || 1
 	if (!props.config.strings) props.config.strings = []
 	for (f = 0; f < string_count; f++) {

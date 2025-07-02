@@ -135,14 +135,13 @@ const batt_percent = ref(0)
 const timer = ref(null)
 
 onMounted(async () => {
-	console.log("GuitarView mounted", instrument.value)
-	connect()
+	// connect()
 	timer.value = setInterval(updateBattery, 120000)
 	updateBattery()
 })
 
 onUnmounted(() => {
-	disconnect()
+	// disconnect()
 	clearInterval(timer.value)
 })
 
