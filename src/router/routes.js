@@ -33,6 +33,8 @@ const routes = [
 			{
 				path: "/tracks",
 				name: "tracks",
+				props: true,
+				component: () => import("pages/Tracks/Layout.vue"),
 				children: [
 					{
 						path: ":id/edit",

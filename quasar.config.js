@@ -62,7 +62,15 @@ export default defineConfig((/* ctx */) => {
 			vitePlugins: [
 				["vite-plugin-checker", { server: false }],
 				AutoImport({
-					imports: ["vue", "vue-router", "pinia"],
+					imports: [
+						"vue",
+						"vue-router",
+						"pinia",
+						"quasar",
+						{
+							"@vueuse/core": ["useStorage", "useSessionStorage"],
+						},
+					],
 				}),
 			],
 

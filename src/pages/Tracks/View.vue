@@ -1,26 +1,5 @@
 <template lang="pug">
 q-page(padding)
-	.row.items-center.q-gutter-md
-		.col-auto
-			q-btn-group
-				q-btn(label="Play" color="primary" icon="play_arrow" @click="play", :disabled="isPlaying")
-				q-btn(label="Pause" color="primary" icon="pause" @click="pause", :disabled="!isPlaying")
-				q-btn(label="Stop" color="primary" icon="stop" @click="stop")
-		.col-auto
-			.text-caption Tempo
-			q-slider(
-				v-model="tempo"
-				label
-				style="width: 200px",
-				:label-value="tempo + ' BPM'",
-				:max="70",
-				:min="5",
-				:step="1"
-			)
-		.col
-			q-option-group(v-model="activeInstruments" type="checkbox" inline, :options="instrumentOptions")
-		q-space
-		q-btn(label="Edit" color="primary" icon="edit", :to="`/tracks/${props.id}/edit`")
 	q-markup-table.q-mt-md(bordered flat)
 		thead
 			tr
