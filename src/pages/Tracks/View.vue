@@ -4,20 +4,21 @@ q-page(padding)
 		thead
 			tr
 				th Time
-				th(v-for="instrument in trackInstruments", :key="instrument.id") {{ instrument.name }}
+				th(v-for="instrument in instruments", :key="instrument.id") {{ instrument.name }}
 		tbody
-			tr(v-for="(row, rowIndex) in track.rows", :key="rowIndex", :class="{ 'bg-yellow-2': currentRow === rowIndex }")
+			tr(v-for="(row, rowIndex) in track.rows", :key="rowIndex", :class="{ 'bg-yellow-2': current_row === rowIndex }")
 				td.text-center
 					.text-caption {{ rowIndex + 1 }}
-				td(v-for="instrument in trackInstruments", :key="instrument.id")
+				td(v-for="instrument in instruments", :key="instrument.id")
+					//- pre {{ row[instrument.id] }}
 					| {{ getCellDisplay(row[instrument.id]) }}
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted, watch } from "vue"
-import { useTracksStore } from "stores/tracks"
-import { useInstrumentsStore } from "stores/instruments"
-import { useInstrument } from "src/pages/Instruments/useInstrument.js"
+// import { ref, computed, onUnmounted, watch } from "vue"
+// import { useTracksStore } from "stores/tracks"
+import { useInstruments } from "src/pages/Instruments/useInstrument.js"
+import { useTrack } from "./useTrack"
 
 const props = defineProps({
 	id: {
@@ -26,124 +27,71 @@ const props = defineProps({
 	},
 })
 
-const tracksStore = useTracksStore()
-const instrumentsStore = useInstrumentsStore()
+const track_id = computed(() => props.id)
+const { track, current_row } = useTrack(track_id)
 
-const track = computed(() => tracksStore.getById(props.id) || { rows: [], instruments: [] })
+const { instruments: all_instruments } = useInstruments()
 
-const trackInstruments = computed(() => {
-	return (track.value.instruments || []).map((id) => instrumentsStore.getById(id)).filter(Boolean)
-})
-
-const instrumentOptions = computed(() => {
-	return trackInstruments.value.map((inst) => ({ label: inst.name, value: inst.id }))
-})
-
-const activeInstruments = ref(trackInstruments.value.map((i) => i.id))
-const tempo = ref(track.value.tempo || 120)
-const isPlaying = ref(false)
-const currentRow = ref(-1)
-let intervalId = null
-const instrumentComms = ref({})
-
-watch(
-	trackInstruments,
-	(newInstruments) => {
-		// Disconnect old instruments
-		Object.values(instrumentComms.value).forEach((comm) => comm.disconnect())
-		instrumentComms.value = {}
-
-		// Connect new instruments
-		newInstruments.forEach((inst) => {
-			const comms = useInstrument(inst.id)
-			// comms.connect()
-			instrumentComms.value[inst.id] = comms
-		})
-
-		// Set active instruments
-		activeInstruments.value = newInstruments.map((i) => i.id)
-	},
-	{ immediate: true },
+const instruments = computed(() =>
+	track.value.instruments.map((instrument) => all_instruments.find((inst) => inst.id === instrument)),
 )
 
-watch(tempo, (newTempo) => {
-	tracksStore.updateTrack(props.id, { tempo: newTempo })
-	if (isPlaying.value) {
-		clearInterval(intervalId)
-		const interval = (60 / newTempo / 4) * 1000 // 16th notes
-		clearInterval(intervalId)
-		intervalId = setInterval(tick, interval)
-	}
-})
+// const tracksStore = useTracksStore()
 
-const play = () => {
-	if (isPlaying.value) return
-	isPlaying.value = true
-	currentRow.value = -1
-	const interval = (60 / tempo.value / 4) * 1000 // 16th notes
-	clearInterval(intervalId)
-	intervalId = setInterval(tick, interval)
-}
+// const track = computed(() => tracksStore.getById(props.id) || { rows: [], instruments: [] })
 
-const pause = () => {
-	isPlaying.value = false
-	clearInterval(intervalId)
-	intervalId = null
-}
+// const trackInstruments = computed(() => {
+// 	return (track.value.instruments || []).map((id) => instrumentsStore.getById(id)).filter(Boolean)
+// })
 
-const stop = () => {
-	pause()
-	currentRow.value = -1
-}
+// const tick = () => {
+// 	if (!isPlaying.value) return
 
-const tick = () => {
-	if (!isPlaying.value) return
+// 	currentRow.value = (currentRow.value + 1) % (track.value.rows.length || 1)
 
-	currentRow.value = (currentRow.value + 1) % (track.value.rows.length || 1)
+// 	const rowData = track.value.rows[currentRow.value]
+// 	if (!rowData) return
 
-	const rowData = track.value.rows[currentRow.value]
-	if (!rowData) return
+// 	trackInstruments.value.forEach((instrument) => {
+// 		if (activeInstruments.value.includes(instrument.id)) {
+// 			const noteData = rowData[instrument.id]
+// 			if (noteData && noteData.action !== "rest") {
+// 				const comms = instrumentComms.value[instrument.id]
+// 				if (comms) {
+// 					const action = noteData.action
+// 					let payload = {}
+// 					switch (action) {
+// 						case "pluck":
+// 							payload = { string: noteData.string }
+// 							break
+// 						case "chord":
+// 							if (noteData.chord) payload.chord = noteData.chord
+// 							if (noteData.note) payload.note = noteData.note
+// 							if (noteData.mode) payload.mode = noteData.mode
+// 							break
+// 						case "note":
+// 							payload = { note: noteData.note }
+// 							break
+// 						default:
+// 							const { action, id, ...rest } = noteData
+// 							payload = rest
+// 					}
+// 					comms.sendCmd("POST", action, payload)
+// 				}
+// 			}
+// 		}
+// 	})
+// }
 
-	trackInstruments.value.forEach((instrument) => {
-		if (activeInstruments.value.includes(instrument.id)) {
-			const noteData = rowData[instrument.id]
-			if (noteData && noteData.action !== "rest") {
-				const comms = instrumentComms.value[instrument.id]
-				if (comms) {
-					const action = noteData.action
-					let payload = {}
-					switch (action) {
-						case "pluck":
-							payload = { string: noteData.string }
-							break
-						case "chord":
-							if (noteData.chord) payload.chord = noteData.chord
-							if (noteData.note) payload.note = noteData.note
-							if (noteData.mode) payload.mode = noteData.mode
-							break
-						case "note":
-							payload = { note: noteData.note }
-							break
-						default:
-							const { action, id, ...rest } = noteData
-							payload = rest
-					}
-					comms.sendCmd("POST", action, payload)
-				}
-			}
-		}
-	})
-}
-
-const getCellDisplay = (cellData) => {
-	if (!cellData) return ""
-	switch (cellData.action) {
+const getCellDisplay = (cell) => {
+	if (!cell) return ""
+	switch (cell.action) {
 		case "pluck":
-			return "String " + cellData.string
+			return "String " + cell.string
 		case "note":
-			return "Note: " + cellData.note
+			return "Note: " + cell.note
 		case "chord":
-			return "Chord: " + cellData.note || cellData.chord
+			return "Chord: " + cell.note || cell.chord
 		case "rest":
 			return ""
 		default:
@@ -151,26 +99,26 @@ const getCellDisplay = (cellData) => {
 	}
 }
 
-// // Ensure there are always a certain number of rows
-// watch(() => track.value.id, () => {
-//   if (track.value && track.value.rows.length < 64) {
-//     const currentLength = track.value.rows.length
-//     for (let i = 0; i < 64 - currentLength; i++) {
-//       const newRow = {}
-//       trackInstruments.value.forEach(inst => {
-//         if (inst && inst.id) {
-//           newRow[inst.id] = { action: 'rest' }
-//         }
-//       })
-//       track.value.rows.push(newRow)
-//     }
-//   }
-// }, { immediate: true })
+// // // Ensure there are always a certain number of rows
+// // watch(() => track.value.id, () => {
+// //   if (track.value && track.value.rows.length < 64) {
+// //     const currentLength = track.value.rows.length
+// //     for (let i = 0; i < 64 - currentLength; i++) {
+// //       const newRow = {}
+// //       trackInstruments.value.forEach(inst => {
+// //         if (inst && inst.id) {
+// //           newRow[inst.id] = { action: 'rest' }
+// //         }
+// //       })
+// //       track.value.rows.push(newRow)
+// //     }
+// //   }
+// // }, { immediate: true })
 
-onUnmounted(() => {
-	if (intervalId) {
-		clearInterval(intervalId)
-	}
-	Object.values(instrumentComms.value).forEach((comm) => comm.disconnect())
-})
+// onUnmounted(() => {
+// 	if (intervalId) {
+// 		clearInterval(intervalId)
+// 	}
+// 	Object.values(instrumentComms.value).forEach((comm) => comm.disconnect())
+// })
 </script>
