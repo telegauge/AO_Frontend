@@ -5,7 +5,7 @@ q-page(padding)
 			q-btn(label="Play" color="primary" icon="play_arrow" @click="Play", :disabled="is_playing")
 			q-btn(label="Pause" color="primary" icon="pause" @click="Pause", :disabled="!is_playing")
 			q-btn(label="Stop" color="primary" icon="stop" @click="Stop")
-		q-toolbar-title {{ track.name }} {{ beat }} = {{ current_row }}
+		q-toolbar-title {{ track.name }} {{ beat }} = {{ current_row }} {{ is_playing }}
 		q-input(
 			v-model.number="track.bpm"
 			type="number"

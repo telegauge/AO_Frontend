@@ -143,7 +143,7 @@ export function useComms(instrument) {
 	}
 
 	const sendCmd = (method, cmd, args) => {
-		console.log("sendCmd", method, cmd, args)
+		console.log("[COMMS] sendCmd", method, cmd, args)
 		if (ws_online.value) {
 			return sendWsCmd(method, cmd, args)
 		} else {
