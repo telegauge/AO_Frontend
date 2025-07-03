@@ -96,7 +96,7 @@ export function useComms(instrument) {
 				...args,
 			}
 
-			console.log("[WS] Sending:", instrument.value.ip, message)
+			console.log("[WS] Sending:", instrument.value.ip, JSON.stringify(message))
 			pendingRequests.set(cmd, resolve)
 			ws.value.send(JSON.stringify(message))
 		})

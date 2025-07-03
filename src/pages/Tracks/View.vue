@@ -87,7 +87,10 @@ const getCellDisplay = (cell) => {
 	if (!cell) return ""
 	switch (cell.action) {
 		case "pluck":
-			return "String " + cell.string
+			if (cell.strings.length > 0) {
+				return "Strings: " + cell.strings.join(", ")
+			}
+			return "String: " + cell.string
 		case "note":
 			return "Note: " + cell.note
 		case "chord":

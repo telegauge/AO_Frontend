@@ -4,7 +4,7 @@ import { useInstrument } from "src/pages/Instruments/useInstrument.js"
 
 const id = ref(null)
 const is_playing = ref(false)
-const beat = ref(0)
+const beat = ref(-1)
 
 const tracksStore = useTracksStore()
 console.log("useTrack")
@@ -38,14 +38,13 @@ export function useTrack(track_id) {
 		Beat()
 		is_playing.value = true
 		clearInterval(intervalId)
-		console.log(beat.value, 60000 / track.value.bpm, ">", current_row.value)
 		intervalId = setTimeout(Play, 60000 / track.value.bpm)
 	}
 
 	function Stop() {
 		clearInterval(intervalId)
 		is_playing.value = false
-		beat.value = 0
+		beat.value = -1
 
 		for (var id in instruments) {
 			instruments[id].sendRestCmd("POST", "home", {})

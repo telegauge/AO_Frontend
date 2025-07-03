@@ -31,7 +31,11 @@ q-page(padding)
 					)
 
 		tbody
-			tr(v-for="(t, i) in track.rows", :key="i", :class="{ bottom_separator: i % 4 === 0 }")
+			tr(
+				v-for="(t, i) in track.rows",
+				:key="i",
+				:class="{ 'bg-yellow-2': current_row === i, bottom_separator: i % 4 === 0 }"
+			)
 				th {{ i + 1 }}
 				Row(v-for="i in track.instruments", :key="i", :instrument="instrumentsStore.getById(i) || {}", :track="t[i] || {}")
 				th
@@ -60,6 +64,7 @@ q-page(padding)
 import { computed } from "vue"
 import { useRouter } from "vue-router"
 import { useTracksStore } from "stores/tracks"
+import { useTrack } from "./useTrack"
 import { useInstrumentsStore } from "stores/instruments"
 
 import Row from "./components/Row.vue"
@@ -76,7 +81,10 @@ const props = defineProps({
 	},
 })
 
-const track = computed(() => store.getById(props.id))
+const track_id = computed(() => props.id)
+const track = computed(() => store.getById(track_id.value))
+
+const { current_row } = useTrack(track_id)
 
 function deleteTrack() {
 	store.removeTrack(props.id)

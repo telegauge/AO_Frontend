@@ -25,10 +25,10 @@ template(v-else)
 		q-input(v-model="track.chord" label="Strum Chord" dense filled)
 	td(v-else-if="track.action === 'pluck'")
 		//- q-input(v-model.number="track.string" type="number" filled label="Pluck String" dense )
-		q-radio(v-model.number="track.string" label="1", :val="1")
-		q-radio(v-model.number="track.string" label="2", :val="2")
-		q-radio(v-model.number="track.string" label="3", :val="3")
-		q-radio(v-model.number="track.string" label="4", :val="4")
+		q-checkbox(v-model="track.strings" label="1", :val="1")
+		q-checkbox(v-model="track.strings" label="2", :val="2")
+		q-checkbox(v-model="track.strings" label="3", :val="3")
+		q-checkbox(v-model="track.strings" label="4", :val="4")
 		//- q-radio(v-model="track.mode" :val="5" label="5" )
 		//- q-radio(v-model="track.mode" :val="6" label="6" )
 	td.text-center(v-else-if="track.action === 'rest'") --
@@ -56,10 +56,10 @@ template(v-else)
 </template>
 <script setup>
 import { computed } from "vue"
-import { useInstrumentsStore } from "stores/instruments"
+// import { useInstrumentsStore } from "stores/instruments"
 
-const instrumentsStore = useInstrumentsStore()
-const instruments = instrumentsStore.instruments
+// const instrumentsStore = useInstrumentsStore()
+// const instruments = instrumentsStore.instruments
 
 const props = defineProps({
 	track: {
@@ -96,4 +96,14 @@ const modes = [
 		description: "Play the note quickly and stop",
 	},
 ]
+
+watch(
+	() => track.value.action,
+	(new_action) => {
+		console.log("action changed", new_action)
+		if (new_action === "pluck") {
+			track.value.strings = []
+		}
+	},
+)
 </script>
