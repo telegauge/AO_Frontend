@@ -3,7 +3,7 @@ q-page(padding)
 	//- h2 {{ isNew ? "Add Instrument" : "Edit Instrument" }}
 	div(v-if="instrument")
 		.row.q-col-gutter-md
-			.col-12.col-md-4
+			.col-12.col-md-2
 				q-select(
 					v-model="instrument.type"
 					label="Type"
@@ -23,6 +23,17 @@ q-page(padding)
 							q-item-section
 								q-item-label {{ scope.opt.label }}
 								q-item-label(caption) {{ scope.opt.description }}
+			.col-12.col-md-2
+				q-select(
+					v-model="instrument.variant"
+					label="Variant"
+					emit-value
+					filled
+					map-options
+					outlined
+					spread,
+					:options="Defs.find((d) => d.value === instrument.type).variants"
+				)
 			.col-12.col-md-4
 				q-input(
 					v-model="instrument.name"

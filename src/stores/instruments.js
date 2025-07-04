@@ -4,7 +4,7 @@ export const Defs = [
 	{
 		label: "Guitar",
 		description: "A stringed instrument with pluckable or strummed strings.",
-		examples: ["Guitar", "Banjo", "Ukulele"],
+		variants: ["Guitar", "Banjo", "Ukulele"],
 		value: "guitar",
 		icon: "guitar",
 		cmd: ["pluck", "strum", "chord"],
@@ -13,7 +13,7 @@ export const Defs = [
 	{
 		label: "Piano",
 		description: "A keyboard instrument with keys that produce different pitches.",
-		examples: ["Piano", "Organ", "Keyboard"],
+		variants: ["Piano", "Organ", "Keyboard"],
 		disabled: true,
 		value: "piano",
 		icon: "piano",
@@ -22,7 +22,7 @@ export const Defs = [
 	{
 		label: "Drums",
 		description: "A percussion instrument with drums and cymbals.",
-		examples: ["Drums", "Percussion"],
+		variants: ["Drums", "Percussion"],
 		disabled: true,
 		value: "drums",
 		icon: "drum",
@@ -31,7 +31,7 @@ export const Defs = [
 	{
 		label: "Bowed",
 		description: "A stringed instrument with a sliding bow",
-		examples: ["Violin", "Cello", "Viola"],
+		variants: ["Violin", "Cello", "Viola"],
 		disabled: true,
 		value: "bow",
 		icon: "bow",
@@ -40,7 +40,7 @@ export const Defs = [
 	{
 		label: "Wind",
 		description: "An instrument that uses air and valves",
-		examples: ["Flute", "Saxophone", "Trumpet"],
+		variants: ["Flute", "Saxophone", "Trumpet"],
 		disabled: true,
 		value: "wind",
 		icon: "wind",
@@ -49,7 +49,7 @@ export const Defs = [
 	{
 		label: "Other",
 		description: "An instrument that doesn't fit into the other categories",
-		examples: ["Synthesizer", "Sampler", "Drum Machine"],
+		variants: ["Synthesizer", "Sampler", "Drum Machine"],
 		disabled: true,
 		value: "misc",
 		icon: "mdi-music-note",

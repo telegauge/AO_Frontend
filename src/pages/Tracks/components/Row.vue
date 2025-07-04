@@ -22,7 +22,7 @@ template(v-else)
 	td(v-if="track.action === 'note'")
 		q-input(v-model="track.note" label="Play Note" dense filled)
 	td(v-else-if="track.action === 'chord'")
-		q-input(v-model="track.chord" label="Strum Chord" dense filled)
+		q-select(v-model="track.chord" label="Strum Chord" dense filled options-dense, :options="Object.keys(chords)")
 	td(v-else-if="track.action === 'pluck'")
 		//- q-input(v-model.number="track.string" type="number" filled label="Pluck String" dense )
 		q-checkbox(v-model="track.strings" label="1", :val="1")
@@ -34,7 +34,9 @@ template(v-else)
 	td.text-center(v-else-if="track.action === 'rest'") --
 	td(v-else)
 
-	td(v-if="['note', 'chord'].includes(track.action)")
+	td(v-if="['chord'].includes(track.action)")
+		q-checkbox(v-model="track.strum" label="Strum Chord" dense filled options-dense, :options="Object.keys(chords)")
+	td(v-else-if="['note'].includes(track.action)")
 		q-btn(:icon="modes.find((m) => m.value === track.mode)?.icon")
 			q-tooltip {{ modes.find((m) => m.value === track.mode)?.description }}
 			q-menu
@@ -101,9 +103,56 @@ watch(
 	() => track.value.action,
 	(new_action) => {
 		console.log("action changed", new_action)
-		if (new_action === "pluck") {
-			track.value.strings = []
+		switch (new_action) {
+			case "chord":
+				track.value.strum = true
+				break
+			case "note":
+				track.value.strum = false
+				break
+			case "pluck":
+				track.value.strings = []
+				break
+			case "rest":
+				break
 		}
 	},
+)
+
+watch(
+	() => track.value.chord,
+	(new_chord) => {
+		console.log("chord changed", new_chord)
+		if (new_chord) {
+			track.value.pressed = chords.value[new_chord]
+		}
+	},
+)
+const capitalize = (str) => {
+	return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+// Load Variant data
+const notes = ref([])
+const variations = ref([])
+const chords = ref({})
+
+watch(
+	() => props.instrument.variant,
+	async (variant) => {
+		if (!variant) return
+		try {
+			const mod = await import(`../../../instruments/${capitalize(props.instrument.type)}/${variant}.js`)
+			notes.value = mod.notes
+			variations.value = mod.variations
+			chords.value = mod.chords
+		} catch (e) {
+			notes.value = []
+			variations.value = []
+			chords.value = {}
+			console.error(`Failed to load variant module: ./` + variant + `.js`, e)
+		}
+	},
+	{ immediate: true },
 )
 </script>

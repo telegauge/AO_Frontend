@@ -38,7 +38,7 @@ q-page(padding)
 			)
 				th {{ i + 1 }}
 				Row(v-for="i in track.instruments", :key="i", :instrument="instrumentsStore.getById(i) || {}", :track="t[i] || {}")
-				th
+				th(style="width: 100px")
 					q-btn(label="Action")
 		tfoot
 			tr

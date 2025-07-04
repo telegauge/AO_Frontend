@@ -3,8 +3,8 @@ q-page(padding)
 	q-markup-table.q-mt-md(bordered flat)
 		thead
 			tr
-				th Time
-				th(v-for="instrument in instruments", :key="instrument.id") {{ instrument.name }}
+				th Beat
+				th.text-left(v-for="instrument in instruments", :key="instrument.id") {{ instrument.name }}
 		tbody
 			tr(v-for="(row, rowIndex) in track.rows", :key="rowIndex", :class="{ 'bg-yellow-2': current_row === rowIndex }")
 				td.text-center
@@ -94,7 +94,7 @@ const getCellDisplay = (cell) => {
 		case "note":
 			return "Note: " + cell.note
 		case "chord":
-			return "Chord: " + cell.note || cell.chord
+			return "Chord: " + cell.chord
 		case "rest":
 			return ""
 		default:
