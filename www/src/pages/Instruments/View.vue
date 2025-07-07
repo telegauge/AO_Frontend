@@ -9,10 +9,10 @@ q-page(padding)
 <script setup>
 import { computed, defineAsyncComponent, ref } from "vue"
 import { useInstrumentsStore } from "stores/instruments"
-import { useInstrument } from "../Instruments/useInstrument.js"
+import { useInstrument } from "../../instruments/useInstrument.js"
 
 const views = {
-	guitar: defineAsyncComponent(() => import("../../instruments/Guitar/GuitarView.vue")),
+	Guitar: defineAsyncComponent(() => import("../../instruments/Guitar/GuitarView.vue")),
 }
 
 const store = useInstrumentsStore()

@@ -81,6 +81,8 @@
 				:icon="batt_status.icon"
 			)
 
+	pre {{ notes }}
+
 	//- q-page-sticky(position="bottom-left", :offset="[18, 18]")
 	//- 	q-btn(color="primary" flat icon="mdi-cog" round @click="showPrefs = true")
 
@@ -106,7 +108,7 @@
 
 <script setup>
 import { computed, watch, ref, onMounted, onUnmounted } from "vue"
-import { useInstrument } from "src/pages/Instruments/useInstrument.js"
+import { useInstrument } from "src/instruments/useInstrument.js"
 import { useStorage } from "@vueuse/core"
 
 // import { notes, variations, chords } from "./Ukulele.js"
@@ -142,22 +144,30 @@ const chords = ref({})
 
 watch(
 	() => instrument.value.variant,
-	async (variant) => {
-		if (!variant) return
-		try {
-			const mod = await import(`./${variant}.js`)
-			notes.value = mod.notes
-			variations.value = mod.variations
-			chords.value = mod.chords
-		} catch (e) {
-			notes.value = []
-			variations.value = []
-			chords.value = {}
-			console.error(`Failed to load variant module: ./` + variant + `.js`, e)
-		}
-	},
+	(variant) => LoadVariant(variant),
 	{ immediate: true },
 )
+
+onMounted(async () => {
+	await LoadVariant(instrument.value.variant)
+})
+
+async function LoadVariant(variant) {
+	// console.log("LoadVariant", variant)
+	// if (!variant) return
+	// try {
+	// 	const mod = await import(`./variants/${variant}.js`)
+	// 	notes.value = mod.notes
+	// 	variations.value = mod.variations
+	// 	chords.value = mod.chords
+	// 	console.log("Loaded variant", variant, mod)
+	// } catch (e) {
+	// 	notes.value = []
+	// 	variations.value = []
+	// 	chords.value = {}
+	// 	console.error(`Failed to load variant module: ./` + variant + `.js`, e)
+	// }
+}
 
 onMounted(async () => {
 	// connect()

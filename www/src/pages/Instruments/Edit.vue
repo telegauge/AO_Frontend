@@ -88,13 +88,13 @@ q-page(padding)
 import { ref, computed, defineAsyncComponent, watch } from "vue"
 import { useInstrumentsStore, Defs } from "stores/instruments"
 import { useRouter } from "vue-router"
-import { useInstrument } from "./useInstrument.js"
+import { useInstrument } from "../../instruments/useInstrument.js"
 import { Notify } from "quasar"
 
 import Raw from "@/components/Raw.vue"
 
 const views = {
-	guitar: defineAsyncComponent(() => import("../../instruments/Guitar/GuitarEdit.vue")),
+	Guitar: defineAsyncComponent(() => import("../../instruments/Guitar/GuitarEdit.vue")),
 }
 
 const props = defineProps({

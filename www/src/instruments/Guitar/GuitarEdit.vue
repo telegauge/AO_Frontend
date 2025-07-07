@@ -113,7 +113,7 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted, onBeforeMount } from "vue"
 
-import { useInstrument } from "../../pages/Instruments/useInstrument.js"
+import { useInstrument } from "../useInstrument.js"
 
 import PinPicker from "@/components/PinPicker.vue"
 
