@@ -5,7 +5,18 @@ const commsMap = new Map()
 
 export function useComms(instrument) {
 	const ip = computed(() => instrument.value && instrument.value.ip)
-	if (!ip.value) return {}
+	if (!ip.value) {
+		console.log("No IP found for instrument", instrument.value)
+		return {
+			ws_online: ref(false),
+			rest_online: ref(false),
+			sendCmd: () => {},
+			sendRestCmd: () => {},
+			sendWsCmd: () => {},
+			connect: () => {},
+			disconnect: () => {},
+		}
+	}
 
 	// If comms for this IP already exists, return it
 	if (commsMap.has(ip.value)) {
@@ -164,5 +175,6 @@ export function useComms(instrument) {
 	// Store in map for persistence
 	commsMap.set(ip.value, commsObj)
 
+	console.log("commsObj", commsObj)
 	return commsObj
 }

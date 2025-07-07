@@ -1,17 +1,19 @@
 import { computed, unref } from "vue"
-import { useInstrumentsStore } from "stores/instruments"
-import { useComms } from "../composables/useComms"
+import { useInstrumentsStore } from "../stores/instruments"
+import { useComms } from "../composables/useComms.js"
 
 export function useInstrument(id) {
 	id = unref(id)
+	console.log("id", id)
 	const instrumentsStore = useInstrumentsStore()
 	const instrument = computed(() => instrumentsStore.getById(id) || {})
 	console.log("instrument", instrument.value)
 	const comms = useComms(instrument)
+	console.log("comms", comms)
 
-	const type = computed(() => instrument.value.type)
-	const variant = computed(() => instrument.value.variant)
-	LoadVariant(type.value, variant.value)
+	// const type = computed(() => instrument.value.type)
+	// const variant = computed(() => instrument.value.variant)
+	// LoadVariant(type.value, variant.value)
 
 	async function LoadVariant(type, variant) {
 		console.log("LoadVariant", type, variant)

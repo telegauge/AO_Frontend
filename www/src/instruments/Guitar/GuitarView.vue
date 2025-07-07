@@ -4,7 +4,7 @@
 		q-card-section
 			q-toolbar
 				q-toolbar-title {{ instrument.name }} ({{ instrument.variant }})
-		q-card-section
+		q-card-section(v-if="instrument.config")
 			q-markup-table(dense)
 				thead
 					tr
@@ -40,7 +40,7 @@
 		q-card-section
 			q-toolbar
 				q-toolbar-title {{ instrument.variant }} Chords
-		q-card-section
+		q-card-section(v-if="instrument.config")
 			q-markup-table(dense)
 				thead
 					tr
@@ -108,7 +108,7 @@
 
 <script setup>
 import { computed, watch, ref, onMounted, onUnmounted } from "vue"
-import { useInstrument } from "src/instruments/useInstrument.js"
+import { useInstrument } from "../useInstrument.js"
 import { useStorage } from "@vueuse/core"
 
 // import { notes, variations, chords } from "./Ukulele.js"
@@ -125,7 +125,7 @@ const props = defineProps({
 })
 
 const instrument_id = computed(() => Number(props.id))
-const { instrument, sendCmd, sendRestCmd, connect, disconnect, ws_online, rest_online } = useInstrument(instrument_id)
+const { instrument, sendCmd, sendRestCmd, ws_online, rest_online } = useInstrument(instrument_id)
 
 const strum_delay = ref(10)
 
@@ -141,33 +141,6 @@ const timer = ref(null)
 const notes = ref([])
 const variations = ref([])
 const chords = ref({})
-
-watch(
-	() => instrument.value.variant,
-	(variant) => LoadVariant(variant),
-	{ immediate: true },
-)
-
-onMounted(async () => {
-	await LoadVariant(instrument.value.variant)
-})
-
-async function LoadVariant(variant) {
-	// console.log("LoadVariant", variant)
-	// if (!variant) return
-	// try {
-	// 	const mod = await import(`./variants/${variant}.js`)
-	// 	notes.value = mod.notes
-	// 	variations.value = mod.variations
-	// 	chords.value = mod.chords
-	// 	console.log("Loaded variant", variant, mod)
-	// } catch (e) {
-	// 	notes.value = []
-	// 	variations.value = []
-	// 	chords.value = {}
-	// 	console.error(`Failed to load variant module: ./` + variant + `.js`, e)
-	// }
-}
 
 onMounted(async () => {
 	// connect()
