@@ -1,6 +1,6 @@
 <template lang="pug">
 #GUITAR.row.q-col-gutter-md
-	.col-md-6.col-12: q-card
+	.col-xl-6.col-12: q-card
 		q-card-section
 			q-toolbar
 				q-toolbar-title {{ instrument.name }} ({{ instrument.variant }})
@@ -23,20 +23,22 @@
 						td(v-for="s in instrument.config.string_count", :key="s")
 							q-btn.fit(:label="getFretAt(f, s) ? '⏺' : '|'" color="primary" @click="toggleFret(f, s)")
 
-					tr.bg-grey-2
+					tr
 						th.text-right Pluck
 						td(v-for="s in instrument.config.string_count", :key="s")
 							q-btn.fit.mouseoverflash(label="V" color="secondary" @click="Pluck(s)")
-					tr.bg-grey-2.desktop-only
+					tr.desktop-only
 						th.text-right Swipe
 						td(v-for="s in instrument.config.string_count", :key="s")
 							q-btn.fit(label=">" color="secondary" @mouseenter="FlashEl" @mouseleave="Pluck(s)")
-					tr.bg-grey-2.desktop-only
-						th.text-right Strum
-						td(colspan="4")
-							q-btn.fit(label="strum" color="secondary" @click="Strum")
+					tr.desktop-only
+						th.text-right Commands
+						td(:colspan="instrument.config.string_count")
+							.row.q-col-gutter-md
+								.col-6: q-btn.fit(label="Home" color="secondary" @click="Home")
+								.col-6: q-btn.fit(label="Strum" color="secondary" @click="Strum")
 
-	.col-md-6.col-12: q-card
+	.col-xl-6.col-12: q-card
 		q-card-section
 			q-toolbar
 				q-toolbar-title {{ instrument.variant }} Chords
@@ -52,58 +54,18 @@
 								unchecked-icon="mdi-guitar-pick-outline"
 							)
 								q-tooltip Strum when setting chords
-						th(v-for="note in notes", :key="note") {{ note }}
+						th(v-for="note in instrument.instrument.notes", :key="note") {{ note }}
 				tbody
-					tr(v-for="v in instrument.config.fret_count + 2", :key="v")
-						th {{ variations[v - 1]?.label }}
-						td(v-for="note in notes", :key="note")
+					tr(v-for="(value, label) in instrument.instrument.variations", :key="v")
+						th {{ label }}
+						td(v-for="note in instrument.instrument.notes", :key="note")
 							q-btn.fit(
-								:label="note + variations[v - 1].value"
+								:label="note + value"
 								color="primary"
 								no-caps
-								@click="setChord(note + variations[v].value)",
-								:disabled="!chords[note + variations[v].value]"
+								@click="setChord(note + value)",
+								:disabled="!(note + value)"
 							)
-
-	q-page-sticky(position="bottom-right", :offset="[18, 18]")
-		.row
-			q-chip.col-shrink(
-				:label="rest_status.label",
-				:color="rest_status.color"
-				text-color="white",
-				:icon="rest_status.icon"
-			)
-			q-chip.col-shrink(:label="ws_status.label", :color="ws_status.color" text-color="white", :icon="ws_status.icon")
-			q-chip.col-shrink(
-				:label="batt_status.label",
-				:color="batt_status.color"
-				text-color="white",
-				:icon="batt_status.icon"
-			)
-
-	pre {{ notes }}
-
-	//- q-page-sticky(position="bottom-left", :offset="[18, 18]")
-	//- 	q-btn(color="primary" flat icon="mdi-cog" round @click="showPrefs = true")
-
-	q-dialog(v-model="showPrefs")
-		q-card(style="min-width: 350px")
-			q-card-section
-				.text-h6 Preferences
-			q-card-section
-				.text-subtitle2 Strum Delay
-				q-input(
-					v-model.number="strum_delay"
-					type="number"
-					label="Delay"
-					filled
-					suffix="ms"
-					hint="Time between each note on the strum",
-					:max="5000",
-					:min="0"
-				)
-			q-card-actions(align="right")
-				q-btn(label="Close" color="primary" flat v-close-popup)
 </template>
 
 <script setup>
@@ -134,50 +96,6 @@ const strum_fret = useStorage("strum_fret", true)
 
 const state = ref("0000") // e.g., "4322" for 4 strings
 
-let last_batt_percent = 0
-const batt_percent = ref(0)
-const timer = ref(null)
-
-const notes = ref([])
-const variations = ref([])
-const chords = ref({})
-
-onMounted(async () => {
-	// connect()
-	timer.value = setInterval(updateBattery, 120000)
-	updateBattery()
-})
-
-onUnmounted(() => {
-	// disconnect()
-	clearInterval(timer.value)
-})
-
-const rest_status = computed(() => ({
-	color: rest_online.value ? "positive" : "negative",
-	label: "REST",
-	icon: rest_online.value ? "mdi-wifi" : "mdi-wifi-alert",
-}))
-const ws_status = computed(() => ({
-	color: ws_online.value ? "positive" : "negative",
-	label: "WS",
-	icon: ws_online.value ? "mdi-wifi-arrow-left-right" : "mdi-wifi-alert",
-}))
-const batt_status = computed(() => {
-	var batt = "mdi-battery-"
-	if (batt_percent.value > last_batt_percent) batt = "mdi-battery-charging-"
-	return {
-		color: batt_percent.value > 20 ? "positive" : batt_percent.value > 10 ? "warning" : "negative",
-		label: batt_percent.value + "%",
-		icon:
-			batt_percent.value < 10
-				? "mdi-battery-alert-variant-outline"
-				: batt_percent.value >= 100
-					? "mdi-battery-check"
-					: batt + ((batt_percent.value / 10) | 0) + "0",
-	}
-})
-
 const interval = ref(0)
 let intervalTimer = null
 watch(interval, (newVal) => {
@@ -188,14 +106,6 @@ watch(interval, (newVal) => {
 		}, newVal)
 	}
 })
-
-const updateBattery = async () => {
-	const batt = await sendRestCmd("GET", "battery")
-	if (batt) {
-		last_batt_percent = batt_percent.value
-		batt_percent.value = batt.percent
-	}
-}
 
 const getFretAt = (fret, string) => {
 	// Returns true if the string is pressed at this fret
@@ -228,17 +138,18 @@ const Pluck = (string) => {
 const Strum = () => {
 	sendCmd("POST", "strum", {})
 }
+const Home = () => {
+	sendCmd("POST", "home", {})
+}
 
 const setChord = (chord) => {
 	// chord is a string like "4322"
-	state.value = chords.value[chord]
+	state.value = instrument.value.instrument.chords[chord]
 	sendCmd("POST", "chord", { pressed: state.value, chord: chord })
 	if (strum_chord.value) {
 		sendCmd("POST", "strum", { delay: strum_delay.value })
 	}
 }
-
-const showPrefs = ref(false)
 
 const FlashEl = (e) => {
 	const target = e.target || e.currentTarget
@@ -246,15 +157,6 @@ const FlashEl = (e) => {
 	setTimeout(() => {
 		target.style.opacity = "1"
 	}, 1000)
-}
-
-const handleTouchMove = (e, string) => {
-	const touch = e.touches[0]
-	const target = document.elementFromPoint(touch.clientX, touch.clientY)
-	if (target && target.classList.contains("q-btn")) {
-		FlashEl({ target })
-		Pluck(string)
-	}
 }
 </script>
 <style scoped lang="scss">

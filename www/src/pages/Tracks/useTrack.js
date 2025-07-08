@@ -1,6 +1,6 @@
 import { computed, unref } from "vue"
 import { useTracksStore } from "stores/tracks"
-import { useInstrument } from "src/pages/Instruments/useInstrument.js"
+import { useInstrument } from "../../instruments/useInstrument.js"
 
 const id = ref(null)
 const is_playing = ref(false)
@@ -56,6 +56,7 @@ export function useTrack(track_id) {
 		var row = track.value.rows[current_row.value]
 		for (var id in row) {
 			const instrument = instruments[id]
+			console.log("  beat: ", id, instrument)
 			if (!instrument) continue
 			const cmd = row[id].action
 			const args = { ...row[id] }

@@ -157,9 +157,11 @@ export function useComms(instrument) {
 		console.log("[COMMS] sendCmd", method, cmd, args)
 		if (ws_online.value) {
 			return sendWsCmd(method, cmd, args)
-		} else {
+		}
+		if (rest_online.value) {
 			return sendRestCmd(method, cmd, args)
 		}
+		return Promise.resolve()
 	}
 
 	const commsObj = {

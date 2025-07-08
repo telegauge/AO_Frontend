@@ -15,7 +15,7 @@ q-page(padding)
 					:options="Defs"
 				)
 					template(#prepend)
-						q-icon(:name="Defs.find((d) => d.value === instrument.type).icon")
+						q-icon(:name="instrument.type")
 					template(#option="scope")
 						q-item(v-bind="scope.itemProps" clickable)
 							q-item-section(v-if="scope.opt.icon" avatar)
@@ -53,7 +53,7 @@ q-page(padding)
 			//- 	q-btn-toggle(v-model="instrument.type" label="Type" outlined spread, :options="Defs")
 
 			.col-12
-				component(:config="instrument.config", :instrument_id="id", :is="views[instrument.type]")
+				component(:instrument="instrument", :instrument_id="id", :is="views[instrument.type]")
 
 			.col-8
 				q-btn.fit(

@@ -133,26 +133,7 @@ const capitalize = (str) => {
 }
 
 // Load Variant data
-const notes = ref([])
-const variations = ref([])
-const chords = ref({})
-
-watch(
-	() => props.instrument.variant,
-	async (variant) => {
-		if (!variant) return
-		try {
-			const mod = await import(`../../../instruments/${capitalize(props.instrument.type)}/${variant}.js`)
-			notes.value = mod.notes
-			variations.value = mod.variations
-			chords.value = mod.chords
-		} catch (e) {
-			notes.value = []
-			variations.value = []
-			chords.value = {}
-			console.error(`Failed to load variant module: ./` + variant + `.js`, e)
-		}
-	},
-	{ immediate: true },
-)
+const notes = computed(() => props.instrument.instrument.notes)
+const variations = computed(() => props.instrument.instrument.variations)
+const chords = computed(() => props.instrument.instrument.chords)
 </script>

@@ -5,12 +5,12 @@
 <script setup>
 import { useQuasar } from "quasar"
 const musicalIcons = {
-	guitar: "mdi-guitar-acoustic",
-	keyboard: "mdi-pia",
-	drum: "mdi-saw-blade",
-	bow: "mdi-violin",
-	wind: "mdi-trumpet",
-	brass: "mdi-trumpet",
+	Guitar: "mdi-guitar-acoustic",
+	Keyboard: "mdi-pia",
+	Drum: "mdi-saw-blade",
+	Bow: "mdi-violin",
+	Wind: "mdi-trumpet",
+	Brass: "mdi-trumpet",
 }
 
 const $q = useQuasar()

@@ -17,7 +17,7 @@ q-page(padding)
 <script setup>
 // import { ref, computed, onUnmounted, watch } from "vue"
 // import { useTracksStore } from "stores/tracks"
-import { useInstruments } from "src/pages/Instruments/useInstrument.js"
+import { useInstruments } from "src/instruments/useInstrument.js"
 import { useTrack } from "./useTrack"
 
 const props = defineProps({

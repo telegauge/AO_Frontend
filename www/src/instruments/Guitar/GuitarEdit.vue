@@ -2,7 +2,7 @@
 .row.q-col-gutter-md
 	.col-12.col-md-6
 		.text-h6 Number of Strings
-		q-btn-toggle(v-model="config.string_count" spread, :options="count_opts")
+		q-btn-toggle(v-model="instrument.instrument.string_count" spread, :options="count_opts")
 		.row.q-col-gutter-sm
 			.col-12
 				.row.q-col-gutter-sm.bg-secondary.q-my-md
@@ -15,15 +15,15 @@
 					.col-1
 						q-radio(v-model="auto_pluck" checked-icon="mdi-cancel" unchecked-icon="mdi-cancel", :val="0")
 			.col-12
-				.row(v-for="(string, i) in config.string_count", :key="string.label")
+				.row(v-for="(string, i) in instrument.instrument.string_count", :key="string.label")
 					.col-shrink
 						//- .text-h6 {{ i + 1 }}
-						PinPicker(v-model:i2c="config.strings[i].i2c" v-model:pin="config.strings[i].pin")
+						PinPicker(v-model:i2c="instrument.config.strings[i].i2c" v-model:pin="instrument.config.strings[i].pin")
 					.col-10
 						.row.q-col-gutter-sm
 							.col-5
 								q-slider(
-									v-model="config.strings[string - 1].swing_left"
+									v-model="instrument.config.strings[string - 1].swing_left"
 									label="Swing Left"
 									reverse,
 									:max="100",
@@ -31,12 +31,23 @@
 									:step="1"
 								)
 							.col-1
-								q-slider(v-model.number="config.strings[string - 1].home_right", :max="30", :min="-30", :step="1")
+								q-slider(
+									v-model.number="instrument.config.strings[string - 1].home_right",
+									:max="30",
+									:min="-30",
+									:step="1"
+								)
 							.col-1
-								q-slider(v-model.number="config.strings[string - 1].home_left" reverse, :max="30", :min="-30", :step="1")
+								q-slider(
+									v-model.number="instrument.config.strings[string - 1].home_left"
+									reverse,
+									:max="30",
+									:min="-30",
+									:step="1"
+								)
 							.col-5
 								q-slider(
-									v-model="config.strings[string - 1].swing_right"
+									v-model="instrument.config.strings[string - 1].swing_right"
 									label="Swing Right",
 									:max="100",
 									:min="0",
@@ -52,7 +63,7 @@
 
 	.col-12.col-md-6
 		.text-h6 Number of Frets
-		q-btn-toggle(v-model="config.fret_count" spread, :options="count_opts")
+		q-btn-toggle(v-model="instrument.config.fret_count" spread, :options="count_opts")
 		.row.q-col-gutter-sm
 			.col-12
 				.row.q-col-gutter-sm.bg-secondary.q-my-md
@@ -66,48 +77,54 @@
 					.col-3
 						q-radio(v-model="auto_pluck" checked-icon="mdi-cancel" unchecked-icon="mdi-cancel", :val="0")
 			.col-12
-				.row.q-col-gutter-sm(v-for="fret in config.fret_count", :key="fret.label")
+				.row.q-col-gutter-sm(v-for="fret in instrument.config.fret_count", :key="fret.label")
 					.col-shrink
-						PinPicker(v-model:i2c="config.frets[fret - 1].i2c_left" v-model:pin="config.frets[fret - 1].pin_left")
+						PinPicker(
+							v-model:i2c="instrument.config.frets[fret - 1].i2c_left"
+							v-model:pin="instrument.config.frets[fret - 1].pin_left"
+						)
 					.col-8
 						.row.q-col-gutter-sm
 							.col-3: q-slider(
-								v-model="config.frets[fret - 1].pos[0]"
+								v-model="instrument.config.frets[fret - 1].pos[0]"
 								selection-color="transparent",
 								:max="0 + 30",
 								:min="0 - 30"
 							)
 							.col-3: q-slider(
-								v-model="config.frets[fret - 1].pos[1]"
+								v-model="instrument.config.frets[fret - 1].pos[1]"
 								selection-color="transparent",
 								:max="60 + 30",
 								:min="60 - 30"
 							)
 							.col-3: q-slider(
-								v-model="config.frets[fret - 1].pos[2]"
+								v-model="instrument.config.frets[fret - 1].pos[2]"
 								selection-color="transparent",
 								:max="90 + 30",
 								:min="90 - 30"
 							)
 							.col-3: q-slider(
-								v-model="config.frets[fret - 1].pos[3]"
+								v-model="instrument.config.frets[fret - 1].pos[3]"
 								selection-color="transparent",
 								:max="120 + 30",
 								:min="120 - 30"
 							)
 					.col-shrink
-						PinPicker(v-model:i2c="config.frets[fret - 1].i2c_right" v-model:pin="config.frets[fret - 1].pin_right")
+						PinPicker(
+							v-model:i2c="instrument.config.frets[fret - 1].i2c_right"
+							v-model:pin="instrument.config.frets[fret - 1].pin_right"
+						)
 					.col
 						.row
 							.col-6
-								q-checkbox(v-model="config.frets[fret - 1].pos[0]")
+								q-checkbox(v-model="instrument.config.frets[fret - 1].pos[0]")
 							.col-6
-								q-checkbox(v-model="config.frets[fret - 1].pos[1]")
+								q-checkbox(v-model="instrument.config.frets[fret - 1].pos[1]")
 						.row
-						//- q-checkbox(v-model="config.frets[fret - 1].pos[0]")
-						//- q-checkbox(v-model="config.frets[fret - 1].pos[1]")
-						//- q-checkbox(v-model="config.frets[fret - 1].pos[2]")
-						//- q-checkbox(v-model="config.frets[fret - 1].pos[3]")
+						//- q-checkbox(v-model="instrument.config.frets[fret - 1].pos[0]")
+						//- q-checkbox(v-model="instrument.config.frets[fret - 1].pos[1]")
+						//- q-checkbox(v-model="instrument.config.frets[fret - 1].pos[2]")
+						//- q-checkbox(v-model="instrument.config.frets[fret - 1].pos[3]")
 						//- q-checkbox(v-model="auto_pluck" checked-icon="mdi-cancel" unchecked-icon="mdi-cancel", :val="0")
 </template>
 <script setup>
@@ -122,9 +139,10 @@ const props = defineProps({
 		type: [String, Number],
 		required: true,
 	},
-	config: {
+	instrument: {
 		type: Object,
 		required: true,
+		default: () => ({}),
 	},
 })
 
@@ -140,7 +158,7 @@ onUnmounted(() => {
 })
 function Beat() {
 	if (auto_pluck.value > 0) {
-		const string = props.config.strings[auto_pluck.value - 1]
+		const string = props.instrument.config.strings[auto_pluck.value - 1]
 		const cal = [string.swing_left, string.home_left, string.home_right, string.swing_right]
 		sendCmd("POST", "pluck", { string: auto_pluck.value, calibrate: cal.join(",") })
 	}
@@ -151,14 +169,14 @@ const auto_strum = ref(0)
 onBeforeMount(VerifyConfig)
 
 watch(
-	() => props.config.string_count,
+	() => props.instrument?.instrument?.string_count,
 	(count) => {
 		VerifyConfig()
 	},
 )
 
 watch(
-	() => props.config.fret_count,
+	() => props.instrument?.instrument?.fret_count,
 	(count) => {
 		console.log("fret count", count)
 		VerifyConfig()
@@ -166,12 +184,16 @@ watch(
 )
 
 function VerifyConfig() {
+	if (!props.instrument?.instrument) return
+	if (!props.instrument.config) props.instrument.config = {}
 	var f
-	const string_count = props.config.string_count || 1
-	if (!props.config.strings) props.config.strings = []
+	if (!props.instrument.config.string_count)
+		props.instrument.config.string_count = props.instrument.instrument.string_count || 1
+	const string_count = props.instrument.config.string_count
+	if (!props.instrument.config?.strings) props.instrument.config.strings = []
 	for (f = 0; f < string_count; f++) {
-		if (!props.config.strings[f])
-			props.config.strings[f] = {
+		if (!props.instrument.config.strings[f])
+			props.instrument.config.strings[f] = {
 				label: "String " + (f + 1),
 				swing_left: 30,
 				swing_right: 30,
@@ -182,11 +204,12 @@ function VerifyConfig() {
 			}
 	}
 
-	const fret_count = props.config.fret_count || 1
-	if (!props.config.frets) props.config.frets = []
-	for (f = 0; f < fret_count; f++) {
-		if (!props.config.frets[f])
-			props.config.frets[f] = {
+	if (!props.instrument.config.fret_count)
+		props.instrument.config.fret_count = props.instrument.instrument.fret_count || 1
+	if (!props.instrument.config.frets) props.instrument.config.frets = []
+	for (f = 0; f < props.instrument.config.fret_count; f++) {
+		if (!props.instrument.config.frets[f])
+			props.instrument.config.frets[f] = {
 				label: "Fret " + (f + 1),
 				pos: [0, 60, 90, 120],
 				i2c_left: "0x40",

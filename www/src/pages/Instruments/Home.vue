@@ -36,7 +36,6 @@ function AddInstrument(type) {
 		name: `New ${type} Instrument`,
 		type: type,
 		ip: "",
-		cmds: [],
 		config: Defs.find((d) => d.value == type)?.defaults || {},
 	})
 	store.instruments.push(instrument.value)
