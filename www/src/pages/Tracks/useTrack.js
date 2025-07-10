@@ -4,10 +4,12 @@ import { useInstrument } from "../../instruments/useInstrument.js"
 
 const id = ref(null)
 const is_playing = ref(false)
-const beat = ref(-1)
+const beat = ref(0)
 
 const tracksStore = useTracksStore()
 console.log("useTrack")
+
+let last_ms = 0
 
 const instruments = {}
 
@@ -15,7 +17,7 @@ export function useTrack(track_id) {
 	id.value = unref(track_id)
 
 	const track = computed(() => tracksStore.getById(id.value) || {})
-	const current_row = computed(() => beat.value % track.value.rows?.length)
+	const current_row = computed(() => (beat.value % track.value.rows?.length) + 0)
 
 	let intervalId = null
 
@@ -34,36 +36,54 @@ export function useTrack(track_id) {
 		is_playing.value = false
 	}
 	function Play() {
-		beat.value++
 		Beat()
 		is_playing.value = true
 		clearInterval(intervalId)
-		intervalId = setTimeout(Play, 60000 / track.value.bpm)
+		intervalId = setInterval(Beat, 60000 / track.value.bpm)
 	}
 
 	function Stop() {
 		clearInterval(intervalId)
 		is_playing.value = false
-		beat.value = -1
+		beat.value = 0
 
 		for (var id in instruments) {
 			instruments[id].sendRestCmd("POST", "home", {})
 		}
 	}
-	// onUnmounted(Stop)
+	onUnmounted(Stop)
+	watch(
+		() => track.value.bpm,
+		(bpm) => {
+			clearInterval(intervalId)
+			intervalId = setInterval(Beat, 60000 / bpm)
+		},
+	)
 
 	function Beat() {
-		var row = track.value.rows[current_row.value]
+		const ms = Date.now()
+		var row = track.value.rows[current_row.value - 0]
 		for (var id in row) {
 			const instrument = instruments[id]
-			console.log("  beat: ", id, instrument)
-			if (!instrument) continue
-			const cmd = row[id].action
-			const args = { ...row[id] }
-			delete args.action
-			delete args.id
-			instruments[id].sendCmd("POST", cmd, args)
+			if (instrument) {
+				console.log(
+					"  beat: ",
+					current_row.value,
+					instrument.instrument.value.name,
+					instrument.instrument.value.ip,
+					ms - last_ms,
+				)
+				if (!instrument) continue
+				const cmd = row[id].action
+				const args = { ...row[id] }
+				delete args.action
+				delete args.id
+				instruments[id].sendCmd("POST", cmd, args)
+			}
 		}
+		beat.value++
+
+		last_ms = ms
 	}
 
 	return {

@@ -93,13 +93,14 @@ export function useComms(instrument) {
 	}
 
 	const sendWsCmd = (method, cmd, args) => {
+		const now = Date.now()
 		if (!instrument.value) return
 
-		if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
-			console.error("[WS] Not connected")
-			ws_online.value = false
-			return sendRestCmd(method, cmd, args)
-		}
+		// if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
+		// 	console.error("[WS] Not connected")
+		// 	ws_online.value = false
+		// 	return sendRestCmd(method, cmd, args)
+		// }
 
 		return new Promise((resolve) => {
 			const message = {
@@ -107,9 +108,10 @@ export function useComms(instrument) {
 				...args,
 			}
 
-			console.log("[WS] Sending:", instrument.value.ip, JSON.stringify(message))
+			// console.log("[WS] Sending:", instrument.value.ip, JSON.stringify(message))
 			pendingRequests.set(cmd, resolve)
 			ws.value.send(JSON.stringify(message))
+			// console.log("[WS] sendCmd", method, cmd, Date.now() - now)
 		})
 	}
 
@@ -154,11 +156,9 @@ export function useComms(instrument) {
 	}
 
 	const sendCmd = (method, cmd, args) => {
-		console.log("[COMMS] sendCmd", method, cmd, args)
 		if (ws_online.value) {
 			return sendWsCmd(method, cmd, args)
-		}
-		if (rest_online.value) {
+		} else if (rest_online.value) {
 			return sendRestCmd(method, cmd, args)
 		}
 		return Promise.resolve()

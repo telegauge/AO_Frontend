@@ -5,9 +5,9 @@ q-page(padding)
 			q-btn(label="Play" color="primary" icon="play_arrow" @click="Play", :disabled="is_playing")
 			q-btn(label="Pause" color="primary" icon="pause" @click="Pause", :disabled="!is_playing")
 			q-btn(label="Stop" color="primary" icon="stop" @click="Stop")
-		q-toolbar-title {{ track.name }} {{ beat }} = {{ current_row }} {{ is_playing }}
+		q-toolbar-title {{ track.name }} beat:{{ beat }} = cr:{{ current_row }} play:{{ is_playing }}
 		q-input(
-			v-model.number="track.bpm"
+			v-model.number.lazy="track.bpm"
 			type="number"
 			label="BPM"
 			dense
@@ -16,9 +16,9 @@ q-page(padding)
 			:min="5",
 			:step="5"
 		)
-		q-tabs
-			q-route-tab(name="view" label="View", :to="`/tracks/${id}`")
-			q-route-tab(name="edit" label="Edit", :to="`/tracks/${id}/edit`")
+		q-tabs(inline-label)
+			q-route-tab(name="view" label="View" icon="visibility", :to="`/tracks/${id}`")
+			q-route-tab(name="edit" label="Edit" icon="edit", :to="`/tracks/${id}/edit`")
 
 	router-view
 

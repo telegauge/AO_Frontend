@@ -5,10 +5,10 @@ q-page(padding)
 			q-icon(:name="instrument.type")
 		q-toolbar-title {{ instrument.name }}
 		q-space
-		q-tabs
-			q-route-tab(name="view" label="View", :to="`/instrument/${id}`")
-			q-route-tab(name="edit" label="Edit", :to="`/instrument/${id}/edit`")
-			q-route-tab(name="api" label="API", :to="`/instrument/${id}/api`")
+		q-tabs(inline-label)
+			q-route-tab(name="view" label="View" icon="visibility", :to="`/instrument/${id}`")
+			q-route-tab(name="edit" label="Edit" icon="edit", :to="`/instrument/${id}/edit`")
+			q-route-tab(name="api" label="API" icon="api", :to="`/instrument/${id}/api`")
 		q-space
 		.row
 			q-chip.col-shrink(

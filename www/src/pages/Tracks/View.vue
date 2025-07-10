@@ -6,7 +6,11 @@ q-page(padding)
 				th Beat
 				th.text-left(v-for="instrument in instruments", :key="instrument.id") {{ instrument.name }}
 		tbody
-			tr(v-for="(row, rowIndex) in track.rows", :key="rowIndex", :class="{ 'bg-yellow-2': current_row === rowIndex }")
+			tr(
+				v-for="(row, rowIndex) in track.rows",
+				:key="rowIndex",
+				:class="{ 'bg-grey-9': current_row === rowIndex - 10 }"
+			)
 				td.text-center
 					.text-caption {{ rowIndex + 1 }}
 				td(v-for="instrument in instruments", :key="instrument.id")

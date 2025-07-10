@@ -34,7 +34,7 @@ q-page(padding)
 			tr(
 				v-for="(t, i) in track.rows",
 				:key="i",
-				:class="{ 'bg-yellow-2': current_row === i, bottom_separator: i % 4 === 0 }"
+				:class="{ 'bg-grey-9': current_row === i + 1, bottom_separator: i % 4 === 0 }"
 			)
 				th {{ i + 1 }}
 				Row(v-for="i in track.instruments", :key="i", :instrument="instrumentsStore.getById(i) || {}", :track="t[i] || {}")
